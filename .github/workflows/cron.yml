@@ -1,0 +1,33 @@
+name: Real Estate Notification
+
+on:
+  schedule:
+    # KST 09:00, 12:00, 15:00, 18:00 → UTC 00:00, 03:00, 06:00, 09:00
+    - cron: "0 0,3,6,9 * * *"
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm start
+        env:
+          MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TARGET_REGION_CODE: ${{ secrets.TARGET_REGION_CODE }}
