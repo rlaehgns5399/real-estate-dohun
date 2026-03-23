@@ -62,51 +62,65 @@ export async function fetchTransactions(
 /** 면적 오차 허용 범위 (㎡) — API 응답의 전용면적과 소수점 차이 보정 */
 const AREA_TOLERANCE = 1;
 
-/** 관심 아파트의 실거래가만 필터링하여 DB에 저장 */
-export async function collectTransactions(): Promise<Transaction[]> {
+/** 최근 N개월치 YYYYMM 목록 생성 */
+function getRecentMonths(count: number): string[] {
+  const months: string[] = [];
   const now = new Date();
-  const dealYm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return months;
+}
+
+/** 관심 아파트의 실거래가만 필터링하여 DB에 저장 (최근 3개월) */
+export async function collectTransactions(): Promise<Transaction[]> {
+  const months = getRecentMonths(3);
 
   // 관심 아파트들의 regionCode 목록 (중복 제거)
   const regionCodes = [...new Set(APARTMENT_ITEMS.map((a) => a.regionCode))];
 
-  const newTransactions: Transaction[] = [];
+  const allTransactions: Transaction[] = [];
 
   for (const regionCode of regionCodes) {
-    const all = await fetchTransactions(regionCode, dealYm);
+    for (const dealYm of months) {
+      const all = await fetchTransactions(regionCode, dealYm);
 
-    // 관심 아파트별로 이름 + 전용면적 필터
-    const filtered = all.filter((t) =>
-      APARTMENT_ITEMS.some(
-        (a) =>
-          a.name === t.apartmentName &&
-          a.regionCode === regionCode &&
-          Math.abs(t.area - a.targetArea) <= AREA_TOLERANCE,
-      ),
-    );
-
-    for (const t of filtered) {
-      const { error } = await supabase.from("transactions").upsert(
-        {
-          apartment_name: t.apartmentName,
-          region_code: t.regionCode,
-          deal_date: t.dealDate,
-          price: t.price,
-          area: t.area,
-          floor: t.floor,
-          build_year: t.buildYear,
-          road_address: t.roadAddress,
-        },
-        { onConflict: "apartment_name,deal_date,price,area,floor" },
+      // 관심 아파트별로 이름 + 전용면적 필터
+      const filtered = all.filter((t) =>
+        APARTMENT_ITEMS.some(
+          (a) =>
+            a.name === t.apartmentName &&
+            a.regionCode === regionCode &&
+            Math.abs(t.area - a.targetArea) <= AREA_TOLERANCE,
+        ),
       );
 
-      if (!error) newTransactions.push(t);
-    }
+      for (const t of filtered) {
+        await supabase.from("transactions").upsert(
+          {
+            apartment_name: t.apartmentName,
+            region_code: t.regionCode,
+            deal_date: t.dealDate,
+            price: t.price,
+            area: t.area,
+            floor: t.floor,
+            build_year: t.buildYear,
+            road_address: t.roadAddress,
+          },
+          { onConflict: "apartment_name,deal_date,price,area,floor" },
+        );
 
-    console.log(
-      `[molit] ${regionCode} ${dealYm}: 전체 ${all.length}건 중 관심 아파트 ${filtered.length}건`,
-    );
+        allTransactions.push(t);
+      }
+
+      console.log(
+        `[molit] ${regionCode} ${dealYm}: 전체 ${all.length}건 중 관심 아파트 ${filtered.length}건`,
+      );
+    }
   }
 
-  return newTransactions;
+  // 날짜순 정렬 (최신 먼저)
+  allTransactions.sort((a, b) => b.dealDate.localeCompare(a.dealDate));
+  return allTransactions;
 }

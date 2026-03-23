@@ -35,8 +35,9 @@ CREATE TABLE listings (
 CREATE TABLE kb_prices (
   id SERIAL PRIMARY KEY,
   apartment_name TEXT NOT NULL,
-  deal_price_lower INTEGER, -- 만원
-  deal_price_upper INTEGER,
+  deal_price_general INTEGER, -- 일반거래가 (만원)
+  deal_price_lower INTEGER, -- 하위 평균가 (만원)
+  deal_price_upper INTEGER, -- 상위 평균가 (만원)
   base_date TEXT,
   fetched_at TIMESTAMPTZ DEFAULT NOW()
 );

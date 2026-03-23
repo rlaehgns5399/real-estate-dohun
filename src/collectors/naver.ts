@@ -90,13 +90,20 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
       );
       data = res.data;
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 429) {
+      const isRetryable =
+        axios.isAxiosError(err) &&
+        (err.response?.status === 429 || err.code === "ECONNRESET");
+
+      if (isRetryable) {
         retryCount++;
         if (retryCount > MAX_RETRIES) {
-          console.warn(`[naver] 429 rate limit — ${MAX_RETRIES}회 재시도 초과, 중단`);
+          console.warn(`[naver] ${MAX_RETRIES}회 재시도 초과, 중단`);
           break;
         }
-        console.warn(`[naver] 429 rate limit — 10초 대기 후 재시도 (${retryCount}/${MAX_RETRIES})`);
+        const reason = axios.isAxiosError(err) && err.response?.status === 429
+          ? "429 rate limit"
+          : "ECONNRESET";
+        console.warn(`[naver] ${reason} — 10초 대기 후 재시도 (${retryCount}/${MAX_RETRIES})`);
         await new Promise((r) => setTimeout(r, 10000));
         continue;
       }

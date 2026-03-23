@@ -33,16 +33,25 @@ async function main() {
 
   // 3. 각 아파트별 매물 스냅샷 + 알림
   for (const apt of APARTMENT_ITEMS) {
+    const aptTransactions = allTransactions.filter((t) => t.apartmentName === apt.name);
+    const kbPrice = kbPrices.find((k) => k.complexNo === apt.kbComplexId) ?? null;
+
+    let diff: import("@/types").ListingDiff = {
+      newListings: [],
+      removedListings: [],
+      totalActive: 0,
+    };
+
     try {
-      const diff = await updateListingsSnapshot(apt);
+      diff = await updateListingsSnapshot(apt);
+    } catch (err) {
+      console.error(`[${apt.name}] 네이버 매물 수집 실패:`, err);
+    }
 
-      const aptTransactions = allTransactions.filter((t) => t.apartmentName === apt.name);
-
-      const kbPrice = kbPrices.find((k) => k.complexNo === apt.kbComplexId) ?? null;
-
+    try {
       await sendNotification(apt.name, aptTransactions, diff, kbPrice);
     } catch (err) {
-      console.error(`[${apt.name}] 처리 실패:`, err);
+      console.error(`[${apt.name}] 알림 발송 실패:`, err);
     }
 
     await new Promise((r) => setTimeout(r, 1000));

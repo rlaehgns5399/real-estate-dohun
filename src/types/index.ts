@@ -45,8 +45,9 @@ export interface Listing {
 /** KB 시세 (매매) */
 export interface KbPrice {
   complexNo: string;
-  dealPriceLower: number; // 만원
-  dealPriceUpper: number; // 만원
+  dealPriceGeneral: number; // 일반거래가 (만원)
+  dealPriceLower: number; // 하위 평균가 (만원)
+  dealPriceUpper: number; // 상위 평균가 (만원)
   baseDate: string;
 }
 

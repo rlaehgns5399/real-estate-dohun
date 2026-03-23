@@ -45,6 +45,7 @@ export async function fetchKbPrice(apt: ApartmentItem): Promise<KbPrice | null> 
 
     return {
       complexNo: apt.kbComplexId,
+      dealPriceGeneral: match.매매일반거래가,
       dealPriceLower: match.매매하한가,
       dealPriceUpper: match.매매상한가,
       baseDate: new Date().toISOString().slice(0, 10),
@@ -66,6 +67,7 @@ export async function collectKbPrices(apartments: ApartmentItem[]): Promise<KbPr
 
     await supabase.from("kb_prices").insert({
       apartment_name: apt.name,
+      deal_price_general: price.dealPriceGeneral,
       deal_price_lower: price.dealPriceLower,
       deal_price_upper: price.dealPriceUpper,
       base_date: price.baseDate,

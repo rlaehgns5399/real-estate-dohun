@@ -26,21 +26,24 @@ function buildMessage(
   lines.push(`📅 ${now}`);
   lines.push("");
 
-  // KB 시세 (매매)
+  // KB 시세 (매매) — 일반가, 하위, 상위
   if (kbPrice && kbPrice.dealPriceUpper > 0) {
     lines.push("📊 *KB 매매 시세*");
-    lines.push(
-      `  ${formatPrice(kbPrice.dealPriceLower)} ~ ${formatPrice(kbPrice.dealPriceUpper)}`,
-    );
+    lines.push(`  일반가: ${formatPrice(kbPrice.dealPriceGeneral)}`);
+    lines.push(`  하위:   ${formatPrice(kbPrice.dealPriceLower)}`);
+    lines.push(`  상위:   ${formatPrice(kbPrice.dealPriceUpper)}`);
     lines.push("");
   }
 
-  // 새 실거래
+  // 최근 실거래가 (최근 3개월)
   if (transactions.length > 0) {
-    lines.push(`💰 *새 실거래가* (${transactions.length}건)`);
+    lines.push(`💰 *최근 실거래가* (${transactions.length}건)`);
     for (const t of transactions) {
       lines.push(`  • ${formatPrice(t.price)} / ${t.area}㎡ / ${t.floor}층 (${t.dealDate})`);
     }
+    lines.push("");
+  } else {
+    lines.push("💰 *최근 실거래가*: 최근 3개월 내 거래 없음");
     lines.push("");
   }
 
@@ -50,7 +53,7 @@ function buildMessage(
   if (diff.newListings.length > 0) {
     lines.push(`\n🆕 *신규 매물* (${diff.newListings.length}건)`);
     for (const l of diff.newListings.slice(0, 10)) {
-      lines.push(`  • ${l.tradeType} ${l.price} / ${l.area}㎡ / ${l.floor}`);
+      lines.push(`  • ${l.price} / ${l.area}㎡ / ${l.floor}`);
       if (l.description) {
         lines.push(`    ${l.description.slice(0, 50)}`);
       }
