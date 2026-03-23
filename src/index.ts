@@ -34,7 +34,7 @@ async function main() {
   // 3. 각 아파트별 매물 스냅샷 + 알림
   for (const apt of APARTMENT_ITEMS) {
     try {
-      const diff = await updateListingsSnapshot(apt.naverComplexId);
+      const diff = await updateListingsSnapshot(apt);
 
       const aptTransactions = allTransactions.filter((t) => t.apartmentName === apt.name);
 

@@ -31,14 +31,12 @@ CREATE TABLE listings (
   UNIQUE(naver_complex_id, article_id)
 );
 
--- KB 시세
+-- KB 시세 (매매)
 CREATE TABLE kb_prices (
   id SERIAL PRIMARY KEY,
   apartment_name TEXT NOT NULL,
   deal_price_lower INTEGER, -- 만원
   deal_price_upper INTEGER,
-  lease_price_lower INTEGER,
-  lease_price_upper INTEGER,
   base_date TEXT,
   fetched_at TIMESTAMPTZ DEFAULT NOW()
 );

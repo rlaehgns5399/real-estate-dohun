@@ -10,6 +10,10 @@ export interface ApartmentItem {
   address: string;
   /** 법정동코드 앞 5자리 */
   regionCode: string;
+  /** 관심 전용면적 (㎡) — 이 면적만 필터링 */
+  targetArea: number;
+  /** 거래 유형 필터 */
+  tradeType: "매매" | "전세" | "월세";
 }
 
 /** 국토교통부 실거래가 */
@@ -38,13 +42,11 @@ export interface Listing {
   realtorName: string;
 }
 
-/** KB 시세 */
+/** KB 시세 (매매) */
 export interface KbPrice {
   complexNo: string;
   dealPriceLower: number; // 만원
   dealPriceUpper: number; // 만원
-  leasePriceLower: number;
-  leasePriceUpper: number;
   baseDate: string;
 }
 

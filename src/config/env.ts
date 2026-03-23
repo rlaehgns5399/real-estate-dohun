@@ -18,7 +18,4 @@ export const env = {
     botToken: requireEnv("TELEGRAM_BOT_TOKEN"),
     chatId: requireEnv("TELEGRAM_CHAT_ID"),
   },
-  targets: {
-    regionCode: requireEnv("TARGET_REGION_CODE"),
-  },
 } as const;

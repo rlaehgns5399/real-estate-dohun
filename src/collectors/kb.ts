@@ -8,38 +8,49 @@ const HEADERS = {
   Referer: "https://kbland.kr/",
 };
 
-interface KbComplexPrice {
-  dealPrcMin?: number;
-  dealPrcMax?: number;
-  leasePrcMin?: number;
-  leasePrcMax?: number;
-  baseDate?: string;
+interface KbAreaData {
+  공급면적: string;
+  전용면적: string;
+  매매하한가: number;
+  매매상한가: number;
+  매매일반거래가: number;
 }
 
-/** KB부동산 시세 조회 (비공식 API) */
-export async function fetchKbPrice(complexNo: string): Promise<KbPrice | null> {
-  try {
-    const { data } = await axios.get(`https://data-api.kbland.kr/bfmstat/complex/price`, {
-      headers: HEADERS,
-      params: {
-        complexNo,
-        type: "deal",
-      },
-    });
+/** KB부동산 매매 시세 조회 — 면적별 필터 */
+export async function fetchKbPrice(apt: ApartmentItem): Promise<KbPrice | null> {
+  if (!apt.kbComplexId) return null;
 
-    const info: KbComplexPrice | undefined = data?.data;
-    if (!info) return null;
+  try {
+    const { data } = await axios.get(
+      "https://api.kbland.kr/land-complex/complex/mpriByType",
+      {
+        headers: HEADERS,
+        params: {
+          단지기본일련번호: apt.kbComplexId,
+        },
+      },
+    );
+
+    const items: KbAreaData[] = data?.dataBody?.data ?? [];
+
+    // targetArea(전용면적) 기준으로 매칭
+    const match = items.find(
+      (item) => Math.abs(parseFloat(item.전용면적) - apt.targetArea) <= 1,
+    );
+
+    if (!match) {
+      console.warn(`[kb] ${apt.name}: 전용 ${apt.targetArea}㎡ 시세 없음`);
+      return null;
+    }
 
     return {
-      complexNo,
-      dealPriceLower: info.dealPrcMin ?? 0,
-      dealPriceUpper: info.dealPrcMax ?? 0,
-      leasePriceLower: info.leasePrcMin ?? 0,
-      leasePriceUpper: info.leasePrcMax ?? 0,
-      baseDate: info.baseDate ?? new Date().toISOString().slice(0, 10),
+      complexNo: apt.kbComplexId,
+      dealPriceLower: match.매매하한가,
+      dealPriceUpper: match.매매상한가,
+      baseDate: new Date().toISOString().slice(0, 10),
     };
   } catch (err) {
-    console.warn(`[kb] 시세 조회 실패 (complexNo: ${complexNo}):`, err);
+    console.warn(`[kb] 시세 조회 실패 (${apt.name}):`, err);
     return null;
   }
 }
@@ -50,15 +61,13 @@ export async function collectKbPrices(apartments: ApartmentItem[]): Promise<KbPr
 
   for (const apt of apartments) {
     if (!apt.kbComplexId) continue;
-    const price = await fetchKbPrice(apt.kbComplexId);
+    const price = await fetchKbPrice(apt);
     if (!price) continue;
 
     await supabase.from("kb_prices").insert({
       apartment_name: apt.name,
       deal_price_lower: price.dealPriceLower,
       deal_price_upper: price.dealPriceUpper,
-      lease_price_lower: price.leasePriceLower,
-      lease_price_upper: price.leasePriceUpper,
       base_date: price.baseDate,
     });
 

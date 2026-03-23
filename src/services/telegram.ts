@@ -26,17 +26,12 @@ function buildMessage(
   lines.push(`📅 ${now}`);
   lines.push("");
 
-  // KB 시세
+  // KB 시세 (매매)
   if (kbPrice && kbPrice.dealPriceUpper > 0) {
-    lines.push("📊 *KB 시세*");
+    lines.push("📊 *KB 매매 시세*");
     lines.push(
-      `  매매: ${formatPrice(kbPrice.dealPriceLower)} ~ ${formatPrice(kbPrice.dealPriceUpper)}`,
+      `  ${formatPrice(kbPrice.dealPriceLower)} ~ ${formatPrice(kbPrice.dealPriceUpper)}`,
     );
-    if (kbPrice.leasePriceUpper > 0) {
-      lines.push(
-        `  전세: ${formatPrice(kbPrice.leasePriceLower)} ~ ${formatPrice(kbPrice.leasePriceUpper)}`,
-      );
-    }
     lines.push("");
   }
 

@@ -20,18 +20,18 @@ interface MolitApiItem {
 }
 
 function parseItem(item: MolitApiItem, regionCode: string): Transaction {
-  const price = parseInt(item.dealAmount.replace(/,/g, "").trim(), 10);
-  const month = item.dealMonth.trim().padStart(2, "0");
-  const day = item.dealDay.trim().padStart(2, "0");
+  const price = parseInt(String(item.dealAmount).replace(/,/g, "").trim(), 10);
+  const month = String(item.dealMonth).trim().padStart(2, "0");
+  const day = String(item.dealDay).trim().padStart(2, "0");
 
   return {
-    apartmentName: item.aptNm.trim(),
+    apartmentName: String(item.aptNm).trim(),
     price,
-    area: parseFloat(item.excluUseAr),
-    floor: parseInt(item.floor, 10),
+    area: parseFloat(String(item.excluUseAr)),
+    floor: parseInt(String(item.floor), 10),
     dealDate: `${item.dealYear}-${month}-${day}`,
-    buildYear: parseInt(item.buildYear, 10),
-    roadAddress: `${item.roadNm} ${item.roadNmBonbun}`.trim(),
+    buildYear: parseInt(String(item.buildYear), 10),
+    roadAddress: `${String(item.roadNm ?? "")} ${String(item.roadNmBonbun ?? "")}`.trim(),
     regionCode,
   };
 }
@@ -59,6 +59,9 @@ export async function fetchTransactions(
   return list.map((item: MolitApiItem) => parseItem(item, regionCode));
 }
 
+/** 면적 오차 허용 범위 (㎡) — API 응답의 전용면적과 소수점 차이 보정 */
+const AREA_TOLERANCE = 1;
+
 /** 관심 아파트의 실거래가만 필터링하여 DB에 저장 */
 export async function collectTransactions(): Promise<Transaction[]> {
   const now = new Date();
@@ -66,13 +69,21 @@ export async function collectTransactions(): Promise<Transaction[]> {
 
   // 관심 아파트들의 regionCode 목록 (중복 제거)
   const regionCodes = [...new Set(APARTMENT_ITEMS.map((a) => a.regionCode))];
-  const aptNames = new Set(APARTMENT_ITEMS.map((a) => a.name));
 
   const newTransactions: Transaction[] = [];
 
   for (const regionCode of regionCodes) {
     const all = await fetchTransactions(regionCode, dealYm);
-    const filtered = all.filter((t) => aptNames.has(t.apartmentName));
+
+    // 관심 아파트별로 이름 + 전용면적 필터
+    const filtered = all.filter((t) =>
+      APARTMENT_ITEMS.some(
+        (a) =>
+          a.name === t.apartmentName &&
+          a.regionCode === regionCode &&
+          Math.abs(t.area - a.targetArea) <= AREA_TOLERANCE,
+      ),
+    );
 
     for (const t of filtered) {
       const { error } = await supabase.from("transactions").upsert(

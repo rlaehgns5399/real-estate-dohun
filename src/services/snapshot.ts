@@ -1,11 +1,13 @@
 import { fetchListings } from "@/collectors/naver";
 import { supabase } from "@/db/client";
-import type { ListingDiff } from "@/types";
+import type { ApartmentItem, ListingDiff } from "@/types";
 
 /** 매물 스냅샷을 저장하고 이전 대비 변동사항을 반환 */
-export async function updateListingsSnapshot(naverComplexId: string): Promise<ListingDiff> {
-  // 1. 현재 매물 수집
-  const currentListings = await fetchListings(naverComplexId);
+export async function updateListingsSnapshot(apt: ApartmentItem): Promise<ListingDiff> {
+  const naverComplexId = apt.naverComplexId;
+
+  // 1. 현재 매물 수집 (거래유형 + 면적 필터 적용됨)
+  const currentListings = await fetchListings(apt);
   const currentArticleIds = new Set(currentListings.map((l) => l.articleId));
 
   // 2. DB에서 기존 활성 매물 조회

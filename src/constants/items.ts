@@ -15,11 +15,13 @@ import type { ApartmentItem } from "@/types";
  *                    예: 강남구=11680, 서초구=11650, 송파구=11710
  */
 export const APARTMENT_ITEMS: ApartmentItem[] = [
-  // {
-  //   name: "래미안원베일리",
-  //   naverComplexId: "102378",
-  //   kbComplexId: null,
-  //   address: "서울시 서초구 반포대로 00",
-  //   regionCode: "11650",
-  // },
+  {
+    name: "강동리엔파크14단지",
+    naverComplexId: "134513",
+    kbComplexId: "311861",
+    address: "서울특별시 강동구 고덕로98길 160",
+    regionCode: "11740",
+    targetArea: 49,
+    tradeType: "매매",
+  },
 ];
