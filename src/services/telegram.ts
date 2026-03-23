@@ -98,8 +98,9 @@ function buildMessage(
   lines.push(`📋 *매물 현황* (총 ${diff.totalActive}건)`);
 
   if (diff.newListings.length > 0) {
-    lines.push(`\n🆕 *신규 매물* (${diff.newListings.length}건)`);
-    for (const l of diff.newListings) {
+    const sorted = [...diff.newListings].sort((a, b) => b.confirmDate.localeCompare(a.confirmDate));
+    lines.push(`\n🆕 *신규 매물* (${sorted.length}건)`);
+    for (const l of sorted) {
       lines.push(formatListing(l));
     }
   }

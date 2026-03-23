@@ -86,10 +86,10 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
 
     // 네이버 부동산 단지 페이지 직접 방문 (매매 필터 적용)
     const url = `https://new.land.naver.com/complexes/${apt.naverComplexId}?ms=37.5,127.0,17&a=APT:PRE&b=${tradeTypeCode}&e=RETAIL`;
-    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-    // 매물 목록이 로드될 때까지 대기
-    await page.waitForTimeout(3000);
+    // API 응답이 올 때까지 대기
+    await page.waitForTimeout(10000);
 
     // 추가 페이지가 있으면 스크롤로 로드
     for (let i = 0; i < 5; i++) {
