@@ -57,7 +57,7 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
       headless: false,
       args: [
         "--disable-blink-features=AutomationControlled",
-        "--window-position=-9999,-9999",
+        ...(process.env.CI ? [] : ["--window-position=-9999,-9999"]),
       ],
     });
     const context = await browser.newContext({

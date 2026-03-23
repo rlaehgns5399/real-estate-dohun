@@ -5,12 +5,9 @@ import type { KbPrice, Listing, ListingDiff, Transaction } from "@/types";
 const bot = new Telegraf(env.telegram.botToken);
 
 function formatPrice(priceInMan: number): string {
-  if (priceInMan >= 10000) {
-    const eok = Math.floor(priceInMan / 10000);
-    const remainder = priceInMan % 10000;
-    return remainder > 0 ? `${eok}억 ${remainder.toLocaleString()}만` : `${eok}억`;
-  }
-  return `${priceInMan.toLocaleString()}만`;
+  const eok = priceInMan / 10000;
+  const formatted = parseFloat(eok.toFixed(2));
+  return `${formatted}억`;
 }
 
 /** 확인일자 포맷 "20260323" → "2026.03.23" */
@@ -52,7 +49,8 @@ function formatListing(l: Listing, prevPrice?: string): string {
   const floor = formatFloor(l.floor);
   const date = formatDate(l.confirmDate);
 
-  let line = `  • ${l.price} | ${l.area}㎡ | ${dong}${floor} | ${date}`;
+  const price = formatPrice(parsePriceText(l.price));
+  let line = `${price} | ${dong}${floor} | ${date}`;
 
   if (prevPrice && prevPrice !== l.price) {
     line += ` ${formatDelta(prevPrice, l.price)}`;
@@ -63,6 +61,7 @@ function formatListing(l: Listing, prevPrice?: string): string {
 
 function buildMessage(
   apartmentName: string,
+  targetArea: number,
   transactions: Transaction[],
   diff: ListingDiff,
   kbPrice: KbPrice | null,
@@ -70,7 +69,7 @@ function buildMessage(
   const lines: string[] = [];
   const now = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 
-  lines.push(`🏠 *${apartmentName}* 부동산 알림`);
+  lines.push(`🏠 *${apartmentName} ${targetArea}㎡* 부동산 알림`);
   lines.push(`📅 ${now}`);
   lines.push("");
 
@@ -87,7 +86,7 @@ function buildMessage(
   if (transactions.length > 0) {
     lines.push(`💰 *최근 실거래가* (${transactions.length}건)`);
     for (const t of transactions) {
-      lines.push(`  • ${formatPrice(t.price)} | ${t.area}㎡ | ${t.floor}층 | ${t.dealDate}`);
+      lines.push(`  • ${formatPrice(t.price)} | ${t.floor}층 | ${t.dealDate}`);
     }
     lines.push("");
   } else {
@@ -100,28 +99,22 @@ function buildMessage(
 
   if (diff.newListings.length > 0) {
     lines.push(`\n🆕 *신규 매물* (${diff.newListings.length}건)`);
-    for (const l of diff.newListings.slice(0, 10)) {
+    for (const l of diff.newListings) {
       lines.push(formatListing(l));
-    }
-    if (diff.newListings.length > 10) {
-      lines.push(`  ... 외 ${diff.newListings.length - 10}건`);
     }
   }
 
   if (diff.priceChangedListings.length > 0) {
     lines.push(`\n💸 *가격 변동* (${diff.priceChangedListings.length}건)`);
-    for (const { listing, prevPrice } of diff.priceChangedListings.slice(0, 10)) {
+    for (const { listing, prevPrice } of diff.priceChangedListings) {
       lines.push(formatListing(listing, prevPrice));
     }
   }
 
   if (diff.removedListings.length > 0) {
     lines.push(`\n❌ *사라진 매물* (${diff.removedListings.length}건)`);
-    for (const l of diff.removedListings.slice(0, 10)) {
-      lines.push(`  • ${l.price}`);
-    }
-    if (diff.removedListings.length > 10) {
-      lines.push(`  ... 외 ${diff.removedListings.length - 10}건`);
+    for (const l of diff.removedListings) {
+      lines.push(`  • ${formatPrice(parsePriceText(l.price))}`);
     }
   }
 
@@ -138,11 +131,12 @@ function buildMessage(
 
 export async function sendNotification(
   apartmentName: string,
+  targetArea: number,
   transactions: Transaction[],
   diff: ListingDiff,
   kbPrice: KbPrice | null,
 ): Promise<void> {
-  const message = buildMessage(apartmentName, transactions, diff, kbPrice);
+  const message = buildMessage(apartmentName, targetArea, transactions, diff, kbPrice);
 
   await bot.telegram.sendMessage(env.telegram.chatId, message, {
     parse_mode: "Markdown",

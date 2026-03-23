@@ -50,7 +50,7 @@ async function main() {
     }
 
     try {
-      await sendNotification(apt.name, aptTransactions, diff, kbPrice);
+      await sendNotification(apt.name, apt.targetArea, aptTransactions, diff, kbPrice);
     } catch (err) {
       console.error(`[${apt.name}] 알림 발송 실패:`, err);
     }
