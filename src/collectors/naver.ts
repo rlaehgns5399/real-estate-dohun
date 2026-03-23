@@ -84,22 +84,39 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     });
 
     // 네이버 부동산 단지 페이지 직접 방문 (매매 필터 적용)
-    const url = `https://new.land.naver.com/complexes/${apt.naverComplexId}?ms=37.5,127.0,17&a=APT:PRE&b=${tradeTypeCode}&e=RETAIL`;
+    const url = `https://new.land.naver.com/complexes/${apt.naverComplexId}?ms=37.5,127.0,17&a=APT:PRE&b=${tradeTypeCode}&e=RETAIL&ad=true`;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
     // API 응답이 올 때까지 대기
     await page.waitForTimeout(10000);
 
-    // 추가 페이지가 있으면 스크롤로 로드
-    for (let i = 0; i < 5; i++) {
-      const moreButton = page.locator("a.more_btn, button.more_btn").first();
-      if (await moreButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await moreButton.click();
+    // 매물 목록 스크롤 컨테이너에서 반복 스크롤로 전체 로드
+    let prevCount = 0;
+    for (let i = 0; i < 30; i++) {
+      try {
+        // 더보기 버튼 클릭 시도
+        const moreButton = page.locator("a.more_btn, button.more_btn").first();
+        if (await moreButton.isVisible({ timeout: 500 }).catch(() => false)) {
+          await moreButton.click();
+          await page.waitForTimeout(2000);
+          continue;
+        }
+
+        // 매물 목록 컨테이너 스크롤
+        await page.evaluate(() => {
+          const el = document.querySelector(".item_list--article");
+          if (el) el.scrollTop = el.scrollHeight;
+        });
         await page.waitForTimeout(2000);
-      } else {
+      } catch {
         break;
       }
+
+      // 매물 수 변화 없으면 종료
+      if (listings.length === prevCount) break;
+      prevCount = listings.length;
     }
+    console.log(`[naver] 스크롤 완료: 총 ${listings.length}건 수집`);
   } catch (err) {
     console.error("[naver] Playwright 수집 실패:", err);
   } finally {
