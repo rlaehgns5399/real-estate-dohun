@@ -22,6 +22,7 @@ export interface Transaction {
   price: number; // 만원 단위
   area: number; // 전용면적 (㎡)
   floor: number;
+  dong: string; // 아파트 동
   dealDate: string; // YYYY-MM-DD
   buildYear: number;
   roadAddress: string;
@@ -58,12 +59,7 @@ export interface KbPrice {
 /** 매물 변동 결과 */
 export interface ListingDiff {
   newListings: Listing[];
-  removedListings: Array<{
-    articleId: string;
-    articleName: string;
-    price: string;
-    lastSeenAt: string;
-  }>;
+  removedListings: Listing[];
   priceChangedListings: Array<{
     listing: Listing;
     prevPrice: string;

@@ -17,6 +17,7 @@ interface MolitApiItem {
   buildYear: string;
   roadNm: string;
   roadNmBonbun: string;
+  aptDong: string;
 }
 
 function parseItem(item: MolitApiItem, regionCode: string): Transaction {
@@ -29,6 +30,7 @@ function parseItem(item: MolitApiItem, regionCode: string): Transaction {
     price,
     area: parseFloat(String(item.excluUseAr)),
     floor: parseInt(String(item.floor), 10),
+    dong: String(item.aptDong ?? "").trim(),
     dealDate: `${item.dealYear}-${month}-${day}`,
     buildYear: parseInt(String(item.buildYear), 10),
     roadAddress: `${String(item.roadNm ?? "")} ${String(item.roadNmBonbun ?? "")}`.trim(),

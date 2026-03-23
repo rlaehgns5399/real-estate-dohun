@@ -86,9 +86,19 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
 
   const removedListings = removedRows.map((r) => ({
     articleId: r.article_id as string,
+    complexNo: naverComplexId,
     articleName: (r.description as string) ?? "",
+    tradeType: (r.trade_type as string) ?? "",
     price: r.price as string,
-    lastSeenAt: r.last_seen_at as string,
+    area: Number(r.area) || 0,
+    supplyArea: 0,
+    floor: (r.floor as string) ?? "",
+    buildingName: (r.building_name as string) ?? "",
+    direction: (r.direction as string) ?? "",
+    description: (r.description as string) ?? "",
+    confirmDate: (r.confirm_date as string) ?? "",
+    realtorName: (r.realtor_name as string) ?? "",
+    priceChangeState: "SAME",
   }));
 
   console.log(

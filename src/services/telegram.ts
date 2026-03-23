@@ -50,7 +50,7 @@ function formatListing(l: Listing, prevPrice?: string): string {
   const date = formatDate(l.confirmDate);
 
   const price = formatPrice(parsePriceText(l.price));
-  let line = `${price} | ${dong}${floor} | ${date}`;
+  let line = `  • ${price} | ${dong}${floor} | ${date}`;
 
   if (prevPrice && prevPrice !== l.price) {
     line += ` ${formatDelta(prevPrice, l.price)}`;
@@ -86,7 +86,8 @@ function buildMessage(
   if (transactions.length > 0) {
     lines.push(`💰 *최근 실거래가* (${transactions.length}건)`);
     for (const t of transactions) {
-      lines.push(`  • ${formatPrice(t.price)} | ${t.floor}층 | ${t.dealDate}`);
+      const dong = t.dong ? `${t.dong} ` : "";
+      lines.push(`  • ${formatPrice(t.price)} | ${dong}${t.floor}층 | ${t.dealDate}`);
     }
     lines.push("");
   } else {
@@ -115,7 +116,7 @@ function buildMessage(
   if (diff.removedListings.length > 0) {
     lines.push(`\n❌ *사라진 매물* (${diff.removedListings.length}건)`);
     for (const l of diff.removedListings) {
-      lines.push(`  • ${formatPrice(parsePriceText(l.price))}`);
+      lines.push(formatListing(l));
     }
   }
 
