@@ -22,6 +22,8 @@ CREATE TABLE listings (
   price TEXT NOT NULL,
   area NUMERIC(6,2),
   floor TEXT,
+  building_name TEXT, -- "1403동"
+  direction TEXT, -- "남향"
   description TEXT,
   realtor_name TEXT,
   confirm_date TEXT,

@@ -26,7 +26,7 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
   // 4. 사라진 매물 찾기 (DB에 있지만 현재에 없는 것)
   const removedRows = existing.filter((r) => !currentArticleIds.has(r.article_id as string));
 
-  // 5. 새 매물 DB 삽입
+  // 5. 새 매물 DB 삽입 (가격 변동 감지를 위해 이전 가격도 확인)
   for (const l of newListings) {
     await supabase.from("listings").upsert(
       {
@@ -36,6 +36,8 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
         price: l.price,
         area: l.area,
         floor: l.floor,
+        building_name: l.buildingName,
+        direction: l.direction,
         description: l.description,
         realtor_name: l.realtorName,
         confirm_date: l.confirmDate,
@@ -45,6 +47,20 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
       },
       { onConflict: "naver_complex_id,article_id" },
     );
+  }
+
+  // 5-1. 기존 매물 가격 변동 감지
+  const priceChangedListings: Array<{ listing: typeof currentListings[0]; prevPrice: string }> = [];
+  for (const l of currentListings) {
+    const existingRow = existing.find((r) => r.article_id === l.articleId);
+    if (existingRow && existingRow.price !== l.price) {
+      priceChangedListings.push({ listing: l, prevPrice: existingRow.price as string });
+      // DB 가격 업데이트
+      await supabase
+        .from("listings")
+        .update({ price: l.price, last_seen_at: new Date().toISOString() })
+        .eq("id", existingRow.id);
+    }
   }
 
   // 6. 여전히 존재하는 매물의 last_seen_at 업데이트
@@ -82,6 +98,7 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
   return {
     newListings,
     removedListings,
+    priceChangedListings,
     totalActive: currentListings.length,
   };
 }

@@ -34,12 +34,16 @@ export interface Listing {
   complexNo: string;
   articleName: string;
   tradeType: string; // 매매, 전세, 월세
-  price: string; // "12억 5,000" 등
-  area: number; // 전용면적
-  floor: string;
+  price: string; // "9억", "8억 5,000" 등
+  area: number; // 전용면적 (㎡)
+  supplyArea: number; // 공급면적 (㎡)
+  floor: string; // "5/14" (해당층/총층)
+  buildingName: string; // "1403동"
+  direction: string; // "남향"
   description: string;
-  confirmDate: string;
+  confirmDate: string; // "20260323"
   realtorName: string;
+  priceChangeState: string; // "SAME" | "UP" | "DOWN"
 }
 
 /** KB 시세 (매매) */
@@ -59,6 +63,10 @@ export interface ListingDiff {
     articleName: string;
     price: string;
     lastSeenAt: string;
+  }>;
+  priceChangedListings: Array<{
+    listing: Listing;
+    prevPrice: string;
   }>;
   totalActive: number;
 }

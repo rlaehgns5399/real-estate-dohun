@@ -39,6 +39,7 @@ async function main() {
     let diff: import("@/types").ListingDiff = {
       newListings: [],
       removedListings: [],
+      priceChangedListings: [],
       totalActive: 0,
     };
 
