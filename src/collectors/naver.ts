@@ -8,8 +8,7 @@ const TRADE_TYPE_CODE: Record<string, string> = {
   월세: "B2",
 };
 
-/** 면적 오차 허용 범위 (㎡) */
-const AREA_TOLERANCE = 1;
+import { AREA_TOLERANCE } from "@/utils/constants";
 
 interface NaverArticle {
   articleNo: string;

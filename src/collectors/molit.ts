@@ -61,8 +61,7 @@ export async function fetchTransactions(
   return list.map((item: MolitApiItem) => parseItem(item, regionCode));
 }
 
-/** 면적 오차 허용 범위 (㎡) — API 응답의 전용면적과 소수점 차이 보정 */
-const AREA_TOLERANCE = 1;
+import { AREA_TOLERANCE } from "@/utils/constants";
 
 /** 최근 N개월치 YYYYMM 목록 생성 */
 function getRecentMonths(count: number): string[] {

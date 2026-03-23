@@ -1,6 +1,7 @@
 import axios from "axios";
 import { supabase } from "@/db/client";
 import type { ApartmentItem, KbPrice } from "@/types";
+import { delay } from "@/utils/delay";
 
 const HEADERS = {
   "User-Agent":
@@ -74,7 +75,7 @@ export async function collectKbPrices(apartments: ApartmentItem[]): Promise<KbPr
     });
 
     results.push(price);
-    await new Promise((r) => setTimeout(r, 300));
+    await delay(300);
   }
 
   console.log(`[kb] 시세 ${results.length}건 수집 완료`);
