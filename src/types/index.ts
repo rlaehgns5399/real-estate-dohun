@@ -58,6 +58,7 @@ export interface KbPrice {
 
 /** 매물 변동 결과 */
 export interface ListingDiff {
+  allListings: Listing[];
   newListings: Listing[];
   removedListings: Listing[];
   priceChangedListings: Array<{

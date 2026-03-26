@@ -1,12 +1,13 @@
 import { collectKbPrices } from "@/collectors/kb";
 import { collectTransactions } from "@/collectors/molit";
 import { APARTMENT_ITEMS } from "@/constants/items";
-import type { ListingDiff } from "@/types";
 import { updateListingsSnapshot } from "@/services/snapshot";
 import { sendNotification } from "@/services/telegram";
+import type { ListingDiff } from "@/types";
 import { delay } from "@/utils/delay";
 
 const EMPTY_DIFF: ListingDiff = {
+  allListings: [],
   newListings: [],
   removedListings: [],
   priceChangedListings: [],

@@ -95,9 +95,20 @@ function buildMessage(
     lines.push("");
   }
 
-  // 매물 현황
-  lines.push(`📋 *매물 현황* (총 ${diff.totalActive}건)`);
+  // 전체 매물 리스트
+  if (diff.allListings.length > 0) {
+    const sorted = [...diff.allListings].sort((a, b) => b.confirmDate.localeCompare(a.confirmDate));
+    lines.push(`📋 *전체 매물* (${sorted.length}건)`);
+    for (const l of sorted) {
+      lines.push(formatListing(l));
+    }
+    lines.push("");
+  } else {
+    lines.push("📋 *전체 매물*: 없음");
+    lines.push("");
+  }
 
+  // 매물 변동
   if (diff.newListings.length > 0) {
     const sorted = [...diff.newListings].sort((a, b) => b.confirmDate.localeCompare(a.confirmDate));
     lines.push(`\n🆕 *신규 매물* (${sorted.length}건)`);

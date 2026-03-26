@@ -133,5 +133,5 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
     `[snapshot] 단지 ${naverComplexId}: 신규 ${newListings.length}건, 삭제 ${removedListings.length}건, 활성 ${currentListings.length}건`,
   );
 
-  return { newListings, removedListings, priceChangedListings, totalActive: currentListings.length };
+  return { allListings: currentListings, newListings, removedListings, priceChangedListings, totalActive: currentListings.length };
 }
