@@ -156,4 +156,5 @@ export async function sendNotification(
   });
 
   console.log(`[telegram] ${apartmentName} 알림 발송 완료`);
+  console.log(`[telegram] ${apartmentName} 메시지 내용:\n${message}\n`);
 }
