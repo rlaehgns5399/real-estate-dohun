@@ -88,7 +88,9 @@ export async function fetchTransactions(
       DEAL_YMD: dealYearMonth,
       pageNo: 1,
       numOfRows: 1000,
-      type: "json",
+      // 이 API는 JSON 요청 파라미터가 `type`이 아니라 `_type`(언더스코어)이다.
+      // `type`으로 보내면 서버가 무시하고 XML을 반환한다.
+      _type: "json",
     },
   });
 
@@ -127,20 +129,22 @@ export async function fetchTransactions(
 
 import { AREA_TOLERANCE } from "@/utils/constants";
 
-/** 최근 N개월치 YYYYMM 목록 생성 */
-function getRecentMonths(count: number): string[] {
+/** 시작 연월(YYYY, 1~12)부터 현재월까지의 YYYYMM 목록 생성 */
+function getMonthsFrom(startYear: number, startMonth: number): string[] {
   const months: string[] = [];
   const now = new Date();
-  for (let i = 0; i < count; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}`);
+  const end = new Date(now.getFullYear(), now.getMonth(), 1);
+  const cursor = new Date(startYear, startMonth - 1, 1);
+  while (cursor <= end) {
+    months.push(`${cursor.getFullYear()}${String(cursor.getMonth() + 1).padStart(2, "0")}`);
+    cursor.setMonth(cursor.getMonth() + 1);
   }
   return months;
 }
 
-/** 관심 아파트의 실거래가만 필터링하여 DB에 저장 (최근 3개월) */
+/** 관심 아파트의 실거래가만 필터링하여 DB에 저장 (2026년 3월 ~ 현재월) */
 export async function collectTransactions(): Promise<Transaction[]> {
-  const months = getRecentMonths(3);
+  const months = getMonthsFrom(2026, 3);
 
   // 관심 아파트들의 regionCode 목록 (중복 제거)
   const regionCodes = [...new Set(APARTMENT_ITEMS.map((a) => a.regionCode))];
