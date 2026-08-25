@@ -2,7 +2,7 @@ import "dotenv/config";
 import { createInterface } from "node:readline";
 import { Telegraf } from "telegraf";
 import { env } from "@/config/env";
-import { runReport } from "@/services/report";
+import { runTelegramReport } from "@/services/notify";
 
 const bot = new Telegraf(env.telegram.botToken);
 const ALLOWED_CHAT_ID = Number(env.telegram.chatId);
@@ -15,7 +15,7 @@ bot.use((ctx, next) => {
 bot.command("report", async (ctx) => {
   await ctx.reply("🔍 매물 조사 시작합니다...");
   try {
-    await runReport();
+    await runTelegramReport();
   } catch (err) {
     await ctx.reply("❌ 매물 조사 실패");
     console.error(err);
@@ -35,8 +35,7 @@ bot.on("message", (ctx) => {
       `환영합니다 ${name}님! 🏠\n\n` +
         "이 채널은 부동산 매물 알림 채널입니다.\n\n" +
         "📋 명령어:\n" +
-        "/report — 매물 조사 실행\n\n" +
-        "매일 9시, 12시, 15시, 18시에 자동 알림이 옵니다.",
+        "/report — 매물 조사 실행",
     );
   }
 });

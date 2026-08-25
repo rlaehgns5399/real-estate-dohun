@@ -1,0 +1,56 @@
+name: Deploy Pages
+
+# data/latest.json이 푸시되면(= 로컬에서 pnpm start를 돌리면) 페이지를 다시 만든다.
+# 렌더 코드만 고쳐도 재배포되도록 src/render도 함께 감시한다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/**"
+      - "src/render/**"
+      - "src/types/page.ts"
+      - "src/utils/format.ts"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포는 한 번에 하나만. 중간에 밀린 실행은 취소한다.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # 렌더는 data/latest.json만 읽으므로 시크릿이 필요 없다.
+      - run: pnpm render
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

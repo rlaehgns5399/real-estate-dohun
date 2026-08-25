@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/index.ts",
+    "telegram": "tsx src/telegram.ts",
+    "data": "tsx src/scripts/build-data.ts",
+    "render": "tsx src/scripts/render-page.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
