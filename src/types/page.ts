@@ -75,8 +75,6 @@ export interface TimelineEvent {
   /** YYYY-MM-DD */
   date: string;
   type: "new" | "removed" | "deal";
-  /** 같은 날 같은 유형으로 묶인 건수 */
-  count: number;
   label: string;
   detail: string;
   /** 펼쳤을 때 보여줄 개별 항목 */
@@ -97,5 +95,4 @@ export interface PageTransaction {
   price: number;
   area: number;
   floor: number;
-  dong: string;
 }

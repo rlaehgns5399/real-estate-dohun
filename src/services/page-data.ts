@@ -83,7 +83,6 @@ function toTransaction(row: TransactionRow): PageTransaction {
     price: row.price,
     area: Number(row.area),
     floor: row.floor,
-    dong: "",
   };
 }
 
@@ -301,7 +300,6 @@ function buildTimeline(
     return {
       date: bucket.date,
       type: bucket.type,
-      count: items.length,
       label: bucket.type === "new" ? "신규 매물" : "매물 내려감",
       detail: `${items.length}건 · ${range}`,
       items,
@@ -313,7 +311,6 @@ function buildTimeline(
       events.push({
         date: t.dealDate,
         type: "deal",
-        count: 1,
         label: `${formatEok(t.price)} 실거래 체결`,
         detail: `${t.floor}층`,
         items: [{ price: t.price, where: `${t.floor}층`, note: `전용 ${t.area}㎡` }],
