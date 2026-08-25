@@ -1,59 +1,19 @@
 import { Telegraf } from "telegraf";
 import { env } from "@/config/env";
 import type { KbPrice, Listing, ListingDiff, Transaction } from "@/types";
+import { formatDelta, formatEok, formatFloor, formatYmd, parsePriceText } from "@/utils/format";
 
 const bot = new Telegraf(env.telegram.botToken);
 
-function formatPrice(priceInMan: number): string {
-  const eok = priceInMan / 10000;
-  const formatted = parseFloat(eok.toFixed(2));
-  return `${formatted}억`;
-}
-
-/** 확인일자 포맷 "20260323" → "2026.03.23" */
-function formatDate(ymd: string): string {
-  if (ymd.length !== 8) return ymd;
-  return `${ymd.slice(0, 4)}.${ymd.slice(4, 6)}.${ymd.slice(6, 8)}`;
-}
-
-/** 층 정보 "5/14" → "5층/14층" */
-function formatFloor(floorInfo: string): string {
-  const parts = floorInfo.split("/");
-  if (parts.length === 2) return `${parts[0]}층/${parts[1]}층`;
-  return floorInfo;
-}
-
-/** 네이버 가격 문자열 → 만원 단위 숫자 ("9억 5,000" → 95000) */
-function parsePriceText(text: string): number {
-  let total = 0;
-  const eokMatch = text.match(/(\d+)억/);
-  if (eokMatch) total += parseInt(eokMatch[1], 10) * 10000;
-  const manMatch = text.replace(/,/g, "").match(/억\s*(\d+)|^(\d+)$/);
-  if (manMatch) total += parseInt(manMatch[1] ?? manMatch[2], 10);
-  return total;
-}
-
-/** 가격 변동 delta 표시 */
-function formatDelta(prevPrice: string, currentPrice: string): string {
-  const prev = parsePriceText(prevPrice);
-  const curr = parsePriceText(currentPrice);
-  const diff = curr - prev;
-  if (diff > 0) return `(▲ ${formatPrice(diff)})`;
-  if (diff < 0) return `(▼ ${formatPrice(Math.abs(diff))})`;
-  return "";
-}
-
-/** 매물 한 줄 포맷: 가격 | 면적 | 동 층/총층 | 날짜 */
+/** 매물 한 줄 포맷: 가격 | 동 층/총층 | 확인일 (가격 변동 시 delta 추가) */
 function formatListing(l: Listing, prevPrice?: string): string {
   const dong = l.buildingName ? `${l.buildingName} ` : "";
-  const floor = formatFloor(l.floor);
-  const date = formatDate(l.confirmDate);
-
-  const price = formatPrice(parsePriceText(l.price));
-  let line = `  • ${price} | ${dong}${floor} | ${date}`;
+  const price = formatEok(parsePriceText(l.price));
+  let line = `  • ${price} | ${dong}${formatFloor(l.floor)} | ${formatYmd(l.confirmDate)}`;
 
   if (prevPrice && prevPrice !== l.price) {
-    line += ` ${formatDelta(prevPrice, l.price)}`;
+    const delta = formatDelta(parsePriceText(l.price) - parsePriceText(prevPrice));
+    if (delta) line += ` (${delta})`;
   }
 
   return line;
@@ -76,9 +36,9 @@ function buildMessage(
   // KB 시세 (매매) — 일반가, 하위, 상위
   if (kbPrice && kbPrice.dealPriceUpper > 0) {
     lines.push("📊 *KB 매매 시세*");
-    lines.push(`  일반가: ${formatPrice(kbPrice.dealPriceGeneral)}`);
-    lines.push(`  하위:   ${formatPrice(kbPrice.dealPriceLower)}`);
-    lines.push(`  상위:   ${formatPrice(kbPrice.dealPriceUpper)}`);
+    lines.push(`  일반가: ${formatEok(kbPrice.dealPriceGeneral)}`);
+    lines.push(`  하위:   ${formatEok(kbPrice.dealPriceLower)}`);
+    lines.push(`  상위:   ${formatEok(kbPrice.dealPriceUpper)}`);
     lines.push("");
   }
 
@@ -87,7 +47,7 @@ function buildMessage(
     lines.push(`💰 *최근 실거래가* (${transactions.length}건)`);
     for (const t of transactions) {
       const dong = t.dong ? `${t.dong} ` : "";
-      lines.push(`  • ${formatPrice(t.price)} | ${dong}${t.floor}층 | ${t.dealDate}`);
+      lines.push(`  • ${formatEok(t.price)} | ${dong}${t.floor}층 | ${t.dealDate}`);
     }
     lines.push("");
   } else {
