@@ -22,22 +22,17 @@ export async function fetchKbPrice(apt: ApartmentItem): Promise<KbPrice | null> 
   if (!apt.kbComplexId) return null;
 
   try {
-    const { data } = await axios.get(
-      "https://api.kbland.kr/land-complex/complex/mpriByType",
-      {
-        headers: HEADERS,
-        params: {
-          단지기본일련번호: apt.kbComplexId,
-        },
+    const { data } = await axios.get("https://api.kbland.kr/land-complex/complex/mpriByType", {
+      headers: HEADERS,
+      params: {
+        단지기본일련번호: apt.kbComplexId,
       },
-    );
+    });
 
     const items: KbAreaData[] = data?.dataBody?.data ?? [];
 
     // targetArea(전용면적) 기준으로 매칭
-    const match = items.find(
-      (item) => Math.abs(parseFloat(item.전용면적) - apt.targetArea) <= 1,
-    );
+    const match = items.find((item) => Math.abs(parseFloat(item.전용면적) - apt.targetArea) <= 1);
 
     if (!match) {
       console.warn(`[kb] ${apt.name}: 전용 ${apt.targetArea}㎡ 시세 없음`);

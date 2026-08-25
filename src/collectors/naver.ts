@@ -124,9 +124,7 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
   }
 
   // 전용면적 필터
-  const filtered = listings.filter(
-    (l) => Math.abs(l.area - apt.targetArea) <= AREA_TOLERANCE,
-  );
+  const filtered = listings.filter((l) => Math.abs(l.area - apt.targetArea) <= AREA_TOLERANCE);
 
   console.log(
     `[naver] 단지 ${apt.naverComplexId}: 전체 ${listings.length}건 중 ${apt.targetArea}㎡ ${apt.tradeType} ${filtered.length}건`,
