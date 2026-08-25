@@ -46,7 +46,7 @@ interface MolitBody {
 interface MolitEnvelope {
   header?: { resultCode?: string; resultMsg?: string };
   body?: MolitBody;
-  /** 일부 data.go.kr 서비스는 response로 한 번 더 감싼다 (이 API는 아님). */
+  /** 이 API는 { response: { header, body } }로 한 번 감싸서 내려준다. */
   response?: { header?: { resultCode?: string; resultMsg?: string }; body?: MolitBody };
 }
 
@@ -66,9 +66,9 @@ function findGatewayError(data: unknown): string | null {
     return `${header.errMsg}${header.returnReasonCode ? ` (코드 ${header.returnReasonCode})` : ""}`;
   }
 
-  // 정상 응답은 { header, body } 형태이며 일부 서비스는 { response: { header, body } }로 감싼다.
+  // 정상 응답은 { response: { header, body } } 형태다. 래퍼 없이 내려오는 서비스도 있어 둘 다 본다.
   const d = data as MolitEnvelope;
-  const result = d?.header ?? d?.response?.header;
+  const result = d?.response?.header ?? d?.header;
   if (result?.resultCode && result.resultCode !== "00" && result.resultCode !== "000") {
     return `${result.resultMsg ?? "알 수 없는 오류"} (코드 ${result.resultCode})`;
   }
@@ -107,9 +107,9 @@ export async function fetchTransactions(
     );
   }
 
-  // 이 API는 { header, body }로 바로 내려온다. response 래퍼는 없다.
+  // 이 API는 { response: { header, body } }로 감싸서 내려온다. 래퍼 없는 형태도 방어적으로 처리한다.
   const envelope = data as MolitEnvelope;
-  const body = envelope?.body ?? envelope?.response?.body;
+  const body = envelope?.response?.body ?? envelope?.body;
   if (!body) {
     throw new Error(
       `[molit] ${regionCode} ${dealYearMonth}: 예상치 못한 응답 형식 — ${JSON.stringify(data).slice(0, 300)}`,
