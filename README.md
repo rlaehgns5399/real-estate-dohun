@@ -19,7 +19,7 @@
   └─ 커밋 → 푸시
                   ↓  data/** 변경 감지
 GitHub Actions  (.github/workflows/deploy.yml)
-  ├─ pnpm render : data/latest.json → docs/index.html
+  ├─ pnpm build : Vite가 data/latest.json을 번들에 넣고 dist/ 생성
   └─ GitHub Pages 배포
                   ↓
 브라우저는 완성된 정적 HTML만 받는다 (런타임에 Supabase·git 호출 없음)
@@ -30,7 +30,8 @@ Playwright 스크래핑이 실패한다. 국토부·KB API는 CI에서도 되지
 로컬로 옮겼다.
 
 **Supabase = 원본 저장소, `data/latest.json` = 페이지용 스냅샷** 두 층으로 나뉜다.
-렌더는 JSON만 읽으므로 **CI에 시크릿이 하나도 필요 없다.**
+JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 부르지 않고,
+**CI에 시크릿도 하나도 필요 없다.**
 
 ## 명령어
 
@@ -39,7 +40,9 @@ Playwright 스크래핑이 실패한다. 국토부·KB API는 CI에서도 되지
 | `pnpm start` | 수집 → `data/latest.json` → 커밋 → 푸시 (평소엔 이것만) |
 | `pnpm telegram` | 수집 → 텔레그램 발송 |
 | `pnpm data` | 수집 없이 Supabase → `data/latest.json` 갱신 |
-| `pnpm render` | `data/latest.json` → `docs/index.html` (로컬 미리보기) |
+| `pnpm dev` | Vite 개발 서버 (HMR) |
+| `pnpm build` | `dist/` 생성 |
+| `pnpm preview` | 빌드 결과 로컬 확인 |
 | `pnpm bot` | CLI에서 텔레그램으로 메시지 전송 |
 | `pnpm bot:listen` | 텔레그램 `/report` 명령 리스너 |
 | `pnpm typecheck` / `pnpm lint` | 타입 검사 / 린트 |
@@ -133,32 +136,30 @@ alter table public.ask_snapshots  enable row level security;
 ## 프로젝트 구조
 
 ```
-src/
-├── collectors/          외부 소스 수집
-│   ├── molit.ts         국토교통부 실거래가
-│   ├── kb.ts            KB부동산 시세
-│   └── naver.ts         네이버 매물 (Playwright)
-├── services/
-│   ├── report.ts        수집 파이프라인 (runCollection)
-│   ├── snapshot.ts      매물 스냅샷 diff + 호가 범위 기록
-│   ├── page-data.ts     Supabase → 페이지용 payload
-│   ├── publish.ts       JSON 쓰기 + 커밋·푸시 (분리 가능)
-│   ├── telegram.ts      텔레그램 메시지 빌더
-│   └── notify.ts        수집 + 발송 묶음
-├── render/              HTML 생성 (브라우저 코드 포함)
-│   ├── html.ts          문서 구조
-│   ├── styles.ts        스타일 (테마 토큰)
-│   ├── chart-script.ts  Chart.js 설정 + 상호작용
-│   └── theme.ts         테마 저장소 (부팅/토글 공용)
-├── scripts/             CLI 진입점 (build-data, render-page)
+src/                     Node — 수집 파이프라인 (tsx로 실행)
+├── collectors/          molit / kb / naver(Playwright)
+├── services/            report, snapshot, page-data, publish, telegram, notify
 ├── db/                  Supabase 클라이언트 + 스키마
 ├── config/env.ts        환경변수
 ├── constants/items.ts   관심 아파트
-├── types/               공용 타입 (index, page)
-├── utils/format.ts      가격·층·날짜 포맷 (텔레그램/HTML 공용)
+├── types/page.ts        페이지 payload 타입 ← web과 공유
+├── utils/format.ts      가격·층·날짜 포맷  ← web과 공유
+├── paths.ts             data/latest.json 위치
 ├── index.ts             pnpm start
 ├── telegram.ts          pnpm telegram
 └── bot.ts               pnpm bot
+
+web/                     Vite + React 대시보드
+├── index.html           테마 FOUC 방지 인라인 스크립트
+├── vite.config.ts
+└── src/
+    ├── main.tsx         data/latest.json을 빌드 시점에 import
+    ├── App.tsx
+    ├── styles.css       테마 토큰 + 전역 스타일
+    ├── chartTokens.ts   CSS 커스텀 프로퍼티 → 차트 색
+    ├── components/      Topbar, ThemeToggle, Hero, StatCards, ChartCard,
+    │                    ListingList, Timeline, TransactionTable, Chevron
+    └── hooks/useTheme.ts
 ```
 
 ## 기술 스택
@@ -168,7 +169,8 @@ src/
 | 언어/런타임 | TypeScript, Node.js 22, pnpm |
 | DB | Supabase (PostgreSQL, RLS) |
 | 매물 수집 | Playwright + Chromium |
-| 차트 | Chart.js 4 + chartjs-plugin-zoom (CDN) |
+| 프론트 | React 19, Vite 8 |
+| 차트 | Chart.js 4 + chartjs-plugin-zoom |
 | 알림 | Telegraf |
 | 배포 | GitHub Actions → GitHub Pages |
 | 포매터/린터 | Biome |
@@ -180,4 +182,7 @@ src/
   503이 돌아온다. `pnpm telegram`은 개인망에서 쓸 것.
 - **국토부 실거래가의 동(棟) 정보는 대부분 비공개다.** API에 `aptDong` 필드가 있지만 강동구
   기준 5% 남짓만 값이 있다. 네이버 매물에는 동 정보가 있어 매물 목록에는 표시된다.
-- 페이지는 빌드 시점에 값이 박히므로 **배포된 HTML에 키가 들어가지 않는다.**
+- 페이지는 빌드 시점에 데이터가 번들로 들어가므로 **배포물에 키가 들어가지 않는다.**
+- **차트 색은 `styles.css`의 커스텀 프로퍼티에서 읽는다.** Chart.js는 캔버스에 직접 그려
+  CSS를 상속받지 못해서, 테마가 바뀌면 토큰을 다시 읽어 차트를 새로 만든다.
+  팔레트를 고칠 때는 `styles.css` 한 곳만 보면 된다.

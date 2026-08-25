@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative } from "node:path";
 import { promisify } from "node:util";
-import { DATA_FILE } from "@/render/paths";
+import { DATA_FILE } from "@/paths";
 import type { PageData } from "@/types/page";
 
 const run = promisify(execFile);

@@ -1,3 +1,7 @@
+/// <reference lib="dom" />
+// page.evaluate 콜백은 브라우저 컨텍스트에서 실행되므로 DOM 타입이 필요하다.
+// 나머지 Node 코드가 실수로 브라우저 API를 쓰는 걸 막기 위해 이 파일에만 열어둔다.
+
 import { type Browser, chromium } from "playwright";
 import type { ApartmentItem, Listing } from "@/types";
 

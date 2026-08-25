@@ -7,26 +7,36 @@
     "start": "tsx src/index.ts",
     "telegram": "tsx src/telegram.ts",
     "data": "tsx src/scripts/build-data.ts",
-    "render": "tsx src/scripts/render-page.ts",
-    "typecheck": "tsc --noEmit",
-    "lint": "biome check src",
-    "lint:fix": "biome check --write src",
-    "format": "biome format --write src",
+    "dev": "vite --config web/vite.config.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "preview": "vite preview --config web/vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p web/tsconfig.json",
+    "lint": "biome check src web",
+    "lint:fix": "biome check --write src web",
+    "format": "biome format --write src web",
     "bot": "tsx src/bot.ts",
     "bot:listen": "tsx src/bot.ts listen"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
     "axios": "^1.7.9",
+    "chart.js": "^4.5.1",
+    "chartjs-plugin-zoom": "^2.2.0",
     "dotenv": "^17.3.1",
     "playwright": "^1.58.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
     "@types/node": "^22.13.10",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite": "^8.2.0"
   },
   "packageManager": "pnpm@9.14.2+sha1.5202b50ab92394b3c922d2e293f196e2df6d441b"
 }

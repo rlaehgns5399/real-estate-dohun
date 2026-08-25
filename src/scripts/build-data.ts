@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-import { DATA_FILE } from "@/render/paths";
+import { DATA_FILE } from "@/paths";
 import { buildPageData } from "@/services/page-data";
 
 /** Supabase에 쌓인 데이터로 data/latest.json을 갱신한다 (수집은 하지 않음) */

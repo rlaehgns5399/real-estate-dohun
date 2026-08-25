@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>부동산 모니터</title>
+    <!--
+      첫 페인트 전에 저장된 테마를 적용해 잘못된 색이 번쩍이는 걸 막는다.
+      React가 마운트되기 전에 실행되어야 하므로 인라인으로 둔다.
+    -->
+    <script>
+      try {
+        const stored = localStorage.getItem("theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+      } catch {
+        /* 저장소를 못 읽는 환경 — 기기 설정을 그대로 따른다 */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

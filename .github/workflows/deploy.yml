@@ -7,9 +7,10 @@ on:
     branches: [main]
     paths:
       - "data/**"
-      - "src/render/**"
+      - "web/**"
       - "src/types/page.ts"
       - "src/utils/format.ts"
+      - "package.json"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -43,14 +44,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # 렌더는 data/latest.json만 읽으므로 시크릿이 필요 없다.
-      - run: pnpm render
+      # 빌드는 data/latest.json만 읽으므로 시크릿이 필요 없다.
+      - run: pnpm build
 
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: docs
+          path: dist
 
       - id: deployment
         uses: actions/deploy-pages@v5
