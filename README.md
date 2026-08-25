@@ -1,112 +1,183 @@
 # real-estate-dohun
 
-관심 아파트의 실거래가·매물·시세를 매일 지정된 시간에 텔레그램으로 알려주는 봇.
+관심 아파트의 **실거래가 · 호가 · KB 시세**를 모아 한 페이지로 보여주는 대시보드.
 
-## 기능
+**→ https://rlaehgns5399.github.io/real-estate-dohun**
 
-- **실거래가** — 국토교통부 API로 최근 3개월 매매 실거래가 수집
-- **매물 현황** — 네이버 부동산에서 현재 매물 목록 수집, 이전 스냅샷과 비교해 신규/가격변동/삭제 감지
-- **KB 시세** — KB부동산에서 매매 일반가·하위평균가·상위평균가 수집
-- **텔레그램 알림** — 하루 4회(9시/12시/15시/18시 KST) 자동 발송
-- **수동 실행** — 텔레그램 그룹에서 `/report` 명령어로 즉시 조사
+국토교통부 실거래가(사실), 네이버 부동산 호가(파는 쪽 희망가), KB 시세(은행 담보평가 기준)를
+한 차트에 겹쳐서 "지금 나온 매물이 비싼가 싼가"를 바로 판단할 수 있게 하는 것이 목적이다.
+매입가를 설정하면 기준선과 평가손익도 함께 표시된다.
 
-## 기술 스택
+## 구조
 
-| 영역 | 기술 |
-|------|------|
-| 언어/런타임 | TypeScript, Node.js 22, pnpm |
-| DB | Supabase (PostgreSQL) |
-| 매물 수집 | Playwright + Chromium (네이버 TLS fingerprint 우회) |
-| 알림 | Telegraf (Telegram Bot) |
-| 스케줄 | GitHub Actions cron |
-| 포매터/린터 | Biome |
-
-## 프로젝트 구조
+수집은 로컬에서, 렌더와 배포는 CI에서 한다.
 
 ```
-src/
-├── collectors/       # 외부 API 수집기
-│   ├── kb.ts         # KB부동산 매매 시세
-│   ├── molit.ts      # 국토교통부 실거래가
-│   └── naver.ts      # 네이버 부동산 매물 (Playwright)
-├── services/
-│   ├── report.ts     # 수집 + 알림 파이프라인
-│   ├── snapshot.ts   # 매물 스냅샷 diff
-│   └── telegram.ts   # 텔레그램 메시지 빌더
-├── db/
-│   ├── client.ts     # Supabase 클라이언트
-│   └── schema.sql    # 테이블 스키마
-├── config/env.ts     # 환경변수 파싱
-├── constants/items.ts # 관심 아파트 목록
-├── types/index.ts    # 공용 타입
-├── utils/            # 공용 유틸
-├── bot.ts            # 텔레그램 봇 (CLI/리스너 모드)
-└── index.ts          # 크론 진입점
+로컬  pnpm start
+  ├─ 국토부 / KB / 네이버 수집 → Supabase 저장
+  ├─ data/latest.json 갱신
+  └─ 커밋 → 푸시
+                  ↓  data/** 변경 감지
+GitHub Actions  (.github/workflows/deploy.yml)
+  ├─ pnpm render : data/latest.json → docs/index.html
+  └─ GitHub Pages 배포
+                  ↓
+브라우저는 완성된 정적 HTML만 받는다 (런타임에 Supabase·git 호출 없음)
 ```
+
+**왜 수집을 CI에서 안 하나** — 네이버 부동산이 클라우드 IP 대역을 차단해서 GitHub Actions에서는
+Playwright 스크래핑이 실패한다. 국토부·KB API는 CI에서도 되지만, 매물 없이는 반쪽이라 수집 전체를
+로컬로 옮겼다.
+
+**Supabase = 원본 저장소, `data/latest.json` = 페이지용 스냅샷** 두 층으로 나뉜다.
+렌더는 JSON만 읽으므로 **CI에 시크릿이 하나도 필요 없다.**
+
+## 명령어
+
+| 명령어 | 하는 일 |
+|---|---|
+| `pnpm start` | 수집 → `data/latest.json` → 커밋 → 푸시 (평소엔 이것만) |
+| `pnpm telegram` | 수집 → 텔레그램 발송 |
+| `pnpm data` | 수집 없이 Supabase → `data/latest.json` 갱신 |
+| `pnpm render` | `data/latest.json` → `docs/index.html` (로컬 미리보기) |
+| `pnpm bot` | CLI에서 텔레그램으로 메시지 전송 |
+| `pnpm bot:listen` | 텔레그램 `/report` 명령 리스너 |
+| `pnpm typecheck` / `pnpm lint` | 타입 검사 / 린트 |
+
+데이터가 바뀌지 않으면 `pnpm start`는 커밋을 만들지 않는다 (`generatedAt`은 비교에서 제외).
+
+커밋·푸시를 떼어내고 싶으면 `src/index.ts`에서 `publishData` 대신 `writeDataFile`만 호출하면 된다.
+
+## 대시보드
+
+- **시세 추이 차트** — 실거래 산점도 + 호가 최저~최고 밴드 + KB 일반가/하위~상위 밴드 + 매입가 기준선.
+  가로로 밀어 이동, 핀치·휠로 확대. 범례 칩을 눌러 계열을 켜고 끌 수 있다.
+- **요약 카드** — 최저 호가, KB 일반가, 호가−실거래 갭, 현재 매물 수
+- **현재 매물** — 가격순/최신순/오래된순 정렬, 20건 단위 노출, 신규·장기 매물 배지
+- **최근 변동** — 14일치. 날짜·유형별로 묶고, 펼치면 개별 매물을 볼 수 있다
+- **실거래 내역** — 월 단위 그룹. 그룹 헤더에 건수·평균·범위, 최근 2개월은 펼친 상태
+- 라이트/다크/기기 설정 3단 토글 (선택은 `localStorage`에 저장)
+
+### 값을 정하는 규칙
+
+- **최근 실거래가** — 가장 최근 계약일의 **최고가**. 같은 날 여러 건이면 날짜만으로는 대표값이
+  정해지지 않아 가격 내림차순을 2차 정렬로 둔다. 히어로에 그날의 가격 범위를 함께 표시한다.
+- **호가 범위** — `ask_snapshots`에 기록이 있는 날짜는 기록값을, 그 이전 구간은 `listings`의
+  관측 기록으로 채운다. `listings`는 가격이 바뀌면 행을 덮어써서 과거 호가를 되살릴 수 없기 때문에,
+  기록이 쌓일수록 추정 구간이 줄어든다.
 
 ## 시작하기
 
-### 1. 의존성 설치
+### 1. 설치
 
 ```bash
 pnpm install
 pnpm exec playwright install --with-deps chromium
 ```
 
-### 2. 환경변수 설정
+### 2. 환경변수
 
-`.env.example`을 참고해 `.env` 생성.
+`.env.example`을 복사해 `.env` 생성.
 
 | 변수 | 설명 |
-|------|------|
-| `MOLIT_API_KEY` | [공공데이터포털](https://www.data.go.kr/data/15126469/openapi.do)에서 발급 |
-| `SUPABASE_URL` | Supabase 프로젝트 URL |
-| `SUPABASE_ANON_KEY` | Supabase anon key |
-| `TELEGRAM_BOT_TOKEN` | `@BotFather`에서 발급 |
-| `TELEGRAM_CHAT_ID` | 그룹 chat_id (음수) 또는 개인 user_id |
-| `TARGET_REGION_CODE` | 법정동코드 5자리 (강동구 `11740`) |
+|---|---|
+| `MOLIT_API_KEY` | [공공데이터포털](https://www.data.go.kr/data/15126469/openapi.do) 발급 |
+| `SUPABASE_URL` | 프로젝트 URL |
+| `SUPABASE_SECRET_KEY` | Settings → API Keys에서 발급 (`sb_secret_...`) |
+| `SUPABASE_ANON_KEY` | 레거시 폴백. secret key가 있으면 쓰이지 않는다 |
+| `TELEGRAM_BOT_TOKEN` | `@BotFather` 발급 |
+| `TELEGRAM_CHAT_ID` | 그룹 chat_id(음수) 또는 개인 user_id |
 
-### 3. Supabase 스키마 적용
+수집기는 서버에서만 돌기 때문에 **RLS를 우회하는 secret key**를 쓴다. anon key는 RLS를 켜면
+아무것도 못 하므로 전환기 폴백일 뿐이다.
 
-`src/db/schema.sql`을 Supabase SQL Editor에서 실행.
+### 3. Supabase 스키마
+
+`src/db/schema.sql`을 SQL Editor에서 실행. 테이블은 `transactions`, `listings`, `kb_prices`,
+`ask_snapshots` 네 개다.
+
+이어서 RLS를 켠다. 정책은 만들지 않는다 — 브라우저가 Supabase를 직접 호출하지 않으므로
+anon/publishable 키로 열려 있을 이유가 없고, 수집기는 secret key로 우회한다.
+
+```sql
+alter table public.transactions   enable row level security;
+alter table public.listings       enable row level security;
+alter table public.kb_prices      enable row level security;
+alter table public.ask_snapshots  enable row level security;
+```
 
 ### 4. 관심 아파트 등록
 
-`src/constants/items.ts`에 아파트 정보 추가:
+`src/constants/items.ts`:
 
 ```ts
 {
-  name: "강동리엔파크14단지",      // 국토교통부 API 아파트명 (정확히 일치)
-  naverComplexId: "134513",        // 네이버 부동산 URL complexNo
-  kbComplexId: "311861",           // KB 단지기본일련번호 (없으면 null)
-  regionCode: "11740",             // 법정동코드 5자리
-  targetArea: 49,                  // 관심 전용면적 (㎡)
+  name: "강동리엔파크14단지",   // 국토부 API 아파트명 (정확히 일치)
+  naverComplexId: "134513",     // 네이버 부동산 URL의 complexNo
+  kbComplexId: "311861",        // KB 단지기본일련번호 (없으면 null)
+  address: "서울특별시 강동구 고덕로98길 160",
+  regionCode: "11740",          // 법정동코드 5자리
+  targetArea: 49,               // 관심 전용면적 (㎡)
   tradeType: "매매",
+  purchasePrice: 89000,         // 매입가 (만원, 선택)
 }
 ```
 
-### 5. 실행
+`purchasePrice`를 빼면 기준선·평가손익·매입가 대비 컬럼이 자동으로 사라진다.
 
-```bash
-pnpm start              # 한번 실행
-pnpm bot                # CLI에서 텔레그램으로 메시지 전송
-pnpm bot:listen         # 텔레그램 명령어 리스너 실행
+### 5. GitHub Pages
+
+`Settings → Pages → Source`를 **GitHub Actions**로 설정. 이후 `pnpm start` 한 번이면
+푸시 → 렌더 → 배포까지 이어진다.
+
+## 프로젝트 구조
+
+```
+src/
+├── collectors/          외부 소스 수집
+│   ├── molit.ts         국토교통부 실거래가
+│   ├── kb.ts            KB부동산 시세
+│   └── naver.ts         네이버 매물 (Playwright)
+├── services/
+│   ├── report.ts        수집 파이프라인 (runCollection)
+│   ├── snapshot.ts      매물 스냅샷 diff + 호가 범위 기록
+│   ├── page-data.ts     Supabase → 페이지용 payload
+│   ├── publish.ts       JSON 쓰기 + 커밋·푸시 (분리 가능)
+│   ├── telegram.ts      텔레그램 메시지 빌더
+│   └── notify.ts        수집 + 발송 묶음
+├── render/              HTML 생성 (브라우저 코드 포함)
+│   ├── html.ts          문서 구조
+│   ├── styles.ts        스타일 (테마 토큰)
+│   ├── chart-script.ts  Chart.js 설정 + 상호작용
+│   └── theme.ts         테마 저장소 (부팅/토글 공용)
+├── scripts/             CLI 진입점 (build-data, render-page)
+├── db/                  Supabase 클라이언트 + 스키마
+├── config/env.ts        환경변수
+├── constants/items.ts   관심 아파트
+├── types/               공용 타입 (index, page)
+├── utils/format.ts      가격·층·날짜 포맷 (텔레그램/HTML 공용)
+├── index.ts             pnpm start
+├── telegram.ts          pnpm telegram
+└── bot.ts               pnpm bot
 ```
 
-## GitHub Actions 크론
+## 기술 스택
 
-`.github/workflows/cron.yml` — 하루 4회(9시/12시/15시/18시 KST) 자동 실행.
+| 영역 | 기술 |
+|---|---|
+| 언어/런타임 | TypeScript, Node.js 22, pnpm |
+| DB | Supabase (PostgreSQL, RLS) |
+| 매물 수집 | Playwright + Chromium |
+| 차트 | Chart.js 4 + chartjs-plugin-zoom (CDN) |
+| 알림 | Telegraf |
+| 배포 | GitHub Actions → GitHub Pages |
+| 포매터/린터 | Biome |
 
-Repository secrets에 다음을 등록:
-- `MOLIT_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`
-- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
-- `TARGET_REGION_CODE`
+## 알아둘 것
 
-> **주의**: 네이버 부동산은 클라우드 IP 대역을 차단하므로 GitHub Actions에서는 네이버 수집이 실패할 수 있습니다. KB 시세·실거래가는 정상 동작하며, 네이버 매물은 로컬에서 `pnpm start`로 별도 실행 권장.
-
-## 명령어 (텔레그램)
-
-| 명령어 | 설명 |
-|--------|------|
-| `/report` | 수동으로 매물 조사 실행 |
-| `/start` | 봇 사용 안내 |
+- **네이버는 클라우드 IP를 차단한다.** `pnpm start`는 로컬에서만 돌아간다.
+- **사내망에서 텔레그램이 막힐 수 있다.** 보안 게이트웨이가 `api.telegram.org`를 차단하면
+  503이 돌아온다. `pnpm telegram`은 개인망에서 쓸 것.
+- **국토부 실거래가의 동(棟) 정보는 대부분 비공개다.** API에 `aptDong` 필드가 있지만 강동구
+  기준 5% 남짓만 값이 있다. 네이버 매물에는 동 정보가 있어 매물 목록에는 표시된다.
+- 페이지는 빌드 시점에 값이 박히므로 **배포된 HTML에 키가 들어가지 않는다.**
