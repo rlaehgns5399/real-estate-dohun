@@ -347,7 +347,11 @@ async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<Apar
   );
   const kbRows = dedupeKbByDate((kbRes.data ?? []) as KbRow[]);
 
-  const transactions = txRows.map(toTransaction);
+  // 같은 날 여러 건이 체결되면 날짜만으로는 어느 게 대표가 될지 정해지지 않는다.
+  // 높은 가격을 앞에 둬서 "그 날의 최고가"가 대표값이 되게 한다.
+  const transactions = txRows
+    .map(toTransaction)
+    .sort((a, b) => b.dealDate.localeCompare(a.dealDate) || b.price - a.price);
   const activeRows = listingRows.filter((r) => r.is_active);
   const active = activeRows.map((r) => toListing(r, now)).sort((a, b) => a.price - b.price);
 

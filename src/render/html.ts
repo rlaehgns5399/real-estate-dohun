@@ -105,7 +105,18 @@ function renderTopbar(apt: ApartmentPage): string {
 function renderHero(apt: ApartmentPage): string {
   const s = apt.summary;
   const value = s.lastDeal ? formatEok(s.lastDeal.price) : "—";
-  const basis = s.lastDeal ? `${formatMonthDay(s.lastDeal.dealDate)} 계약` : "실거래 없음";
+
+  // 같은 날 여러 건이면 그 중 최고가를 쓰므로, 그 날 얼마에서 얼마까지 팔렸는지 함께 보여준다.
+  const sameDay = s.lastDeal
+    ? apt.transactions.filter((t) => t.dealDate === s.lastDeal?.dealDate)
+    : [];
+  const prices = sameDay.map((t) => t.price).sort((a, b) => a - b);
+
+  const basis = !s.lastDeal
+    ? "실거래 없음"
+    : prices.length > 1 && prices[0] !== prices[prices.length - 1]
+      ? `${formatMonthDay(s.lastDeal.dealDate)} · ${prices.length}건 ${formatEok(prices[0])}~${formatEok(prices[prices.length - 1])}`
+      : `${formatMonthDay(s.lastDeal.dealDate)} 계약`;
 
   const delta =
     s.purchasePrice !== null && s.vsPurchase !== null && s.vsPurchasePct !== null
