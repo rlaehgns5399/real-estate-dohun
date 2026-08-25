@@ -61,6 +61,33 @@ JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 �
 - **실거래 내역** — 월 단위 그룹. 그룹 헤더에 건수·평균·범위, 최근 2개월은 펼친 상태
 - 라이트/다크/기기 설정 3단 토글 (선택은 `localStorage`에 저장)
 
+### 스타일
+
+Tailwind v4를 쓰고, 디자인 토큰은 `web/src/styles.css`의 `@theme static`에 있다.
+
+**`static`이 반드시 필요하다.** Tailwind v4는 유틸리티에서 쓰이지 않은 테마 변수를
+빌드에서 지운다. 그런데 차트 색(`--color-deal` 등 11개)은 Chart.js가
+`getComputedStyle`로 직접 읽으므로 Tailwind 입장에선 "안 쓰이는" 변수다.
+`static`을 빼면 변수가 사라지고 차트가 빈 문자열을 색으로 받아 캔버스가 검게 나온다.
+
+테마 전환은 같은 변수를 다크 셀렉터에서 다시 정의하는 방식이다. 유틸리티(`bg-card` 등)가
+`var()`를 참조하므로 자동으로 따라온다.
+
+```css
+@theme static { --color-bg: #fbfbfd; ... }              /* 라이트 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --color-bg: #0a0a0c; ... }   /* 기기 설정 */
+}
+:root[data-theme="dark"] { --color-bg: #0a0a0c; ... }   /* 사용자 선택이 덮는다 */
+```
+
+CSS에 남긴 것은 유틸리티로 표현이 어렵거나 오히려 나빠지는 것들뿐이다 —
+토큰과 테마 오버라이드, `reveal` 진입 애니메이션, `summary` 마커 리셋,
+캔버스 `touch-action`, `prefers-reduced-motion` / `-transparency` / `-contrast` 대응.
+
+**팔레트를 고칠 때는 `styles.css` 한 곳만 보면 된다.** 차트 색을 JS에 하드코딩하지
+않은 이유이고, 그래서 테마가 바뀌면 토큰을 다시 읽어 차트를 새로 만든다.
+
 ### 값을 정하는 규칙
 
 - **최근 실거래가** — 가장 최근 계약일의 **최고가**. 같은 날 여러 건이면 날짜만으로는 대표값이
@@ -155,7 +182,7 @@ web/                     Vite + React 대시보드
 └── src/
     ├── main.tsx         data/latest.json을 빌드 시점에 import
     ├── App.tsx
-    ├── styles.css       테마 토큰 + 전역 스타일
+    ├── styles.css       Tailwind 토큰(@theme) + 유틸리티로 안 되는 것들
     ├── chartTokens.ts   CSS 커스텀 프로퍼티 → 차트 색
     ├── components/      Topbar, ThemeToggle, Hero, StatCards, ChartCard,
     │                    ListingList, Timeline, TransactionTable, Chevron
@@ -169,7 +196,7 @@ web/                     Vite + React 대시보드
 | 언어/런타임 | TypeScript, Node.js 22, pnpm |
 | DB | Supabase (PostgreSQL, RLS) |
 | 매물 수집 | Playwright + Chromium |
-| 프론트 | React 19, Vite 8 |
+| 프론트 | React 19, Vite 8, Tailwind CSS 4 |
 | 차트 | Chart.js 4 + chartjs-plugin-zoom |
 | 알림 | Telegraf |
 | 배포 | GitHub Actions → GitHub Pages |
@@ -183,6 +210,4 @@ web/                     Vite + React 대시보드
 - **국토부 실거래가의 동(棟) 정보는 대부분 비공개다.** API에 `aptDong` 필드가 있지만 강동구
   기준 5% 남짓만 값이 있다. 네이버 매물에는 동 정보가 있어 매물 목록에는 표시된다.
 - 페이지는 빌드 시점에 데이터가 번들로 들어가므로 **배포물에 키가 들어가지 않는다.**
-- **차트 색은 `styles.css`의 커스텀 프로퍼티에서 읽는다.** Chart.js는 캔버스에 직접 그려
-  CSS를 상속받지 못해서, 테마가 바뀌면 토큰을 다시 읽어 차트를 새로 만든다.
-  팔레트를 고칠 때는 `styles.css` 한 곳만 보면 된다.
+- **`@theme`에서 `static`을 빼면 차트가 검게 나온다.** 위 "스타일" 참고.
