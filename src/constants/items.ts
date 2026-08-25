@@ -10,6 +10,7 @@ import type { ApartmentItem } from "@/types";
  * - kbComplexId:     KB부동산 단지코드 (없으면 null)
  *                    확인: https://kbland.kr
  * - address:         주소 (알림 표시용)
+ * - purchasePrice:   내 매입가 (만원, 선택). 차트 기준선 + 평가손익 계산에 쓰인다.
  * - regionCode:      법정동코드 앞 5자리
  *                    확인: https://rt.molit.go.kr (지역 선택 시 코드 확인)
  *                    예: 강남구=11680, 서초구=11650, 송파구=11710
@@ -23,5 +24,6 @@ export const APARTMENT_ITEMS: ApartmentItem[] = [
     regionCode: "11740",
     targetArea: 49,
     tradeType: "매매",
+    purchasePrice: 89000,
   },
 ];

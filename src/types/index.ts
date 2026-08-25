@@ -14,6 +14,8 @@ export interface ApartmentItem {
   targetArea: number;
   /** 거래 유형 필터 */
   tradeType: "매매" | "전세" | "월세";
+  /** 내 매입가 (만원). 설정하면 차트에 기준선과 평가손익이 표시된다. */
+  purchasePrice?: number;
 }
 
 /** 국토교통부 실거래가 */
