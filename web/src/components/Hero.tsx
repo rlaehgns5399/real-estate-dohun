@@ -1,6 +1,6 @@
 import type { ApartmentPage } from "@shared/types/page";
 import { formatEok, formatMonthDay } from "@shared/utils/format";
-import { signedEok, signedPct, tone } from "@/format";
+import { signedEok, signedPct, toneClass } from "@/format";
 
 /**
  * 지금 얼마고, 내 매입가 대비 얼마인가.
@@ -23,22 +23,35 @@ export function Hero({ apt }: { apt: ApartmentPage }) {
       : `${formatMonthDay(s.lastDeal.dealDate)} 계약`;
 
   return (
-    <header className="hero">
-      <h1 className="reveal reveal-1">{apt.name}</h1>
-      <p className="hero-sub reveal reveal-1">
+    <header className="pb-7 pt-9">
+      {/* 큰 글자일수록 자간이 넓어 보이므로 트래킹을 음수로 조인다 */}
+      <h1 className="reveal m-0 text-[clamp(1.5rem,6vw,1.875rem)] font-bold leading-[1.12] tracking-[-0.028em]">
+        {apt.name}
+      </h1>
+      <p className="reveal mt-1.5 text-[0.8125rem] leading-[1.5] tracking-[0.003em] text-muted">
         {apt.targetArea}㎡ {apt.tradeType} · {apt.address} ·{" "}
-        <a href={apt.naverUrl} target="_blank" rel="noopener">
+        <a
+          href={apt.naverUrl}
+          target="_blank"
+          rel="noopener"
+          className="border-b border-border text-muted transition-colors duration-150 ease-out-strong hover:border-faint hover:text-text"
+        >
           네이버 부동산
         </a>
       </p>
-      <div className="hero-stat reveal reveal-2">
-        <div className="hero-label">최근 실거래가</div>
-        <div className="hero-value">{s.lastDeal ? formatEok(s.lastDeal.price) : "—"}</div>
-        <div className="hero-delta">
+
+      <div className="reveal reveal-2 mt-7">
+        <div className="text-xs font-semibold uppercase tracking-[0.045em] text-muted">
+          최근 실거래가
+        </div>
+        <div className="mt-[0.3125rem] text-[clamp(2.75rem,13vw,3.75rem)] font-bold leading-none tracking-[-0.045em] tabular-nums">
+          {s.lastDeal ? formatEok(s.lastDeal.price) : "—"}
+        </div>
+        <div className="mt-2 text-sm leading-[1.5] tabular-nums text-muted">
           {s.purchasePrice !== null && s.vsPurchase !== null && s.vsPurchasePct !== null ? (
             <>
               매입가 {formatEok(s.purchasePrice)} 대비{" "}
-              <b className={tone(s.vsPurchase)}>
+              <b className={`font-semibold ${toneClass(s.vsPurchase)}`}>
                 {signedEok(s.vsPurchase)} ({signedPct(s.vsPurchasePct)})
               </b>{" "}
               · {basis}

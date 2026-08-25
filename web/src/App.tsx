@@ -38,11 +38,11 @@ export function App({ data }: { data: PageData }) {
   return (
     <>
       {first && <Topbar apt={first} choice={choice} onCycleTheme={cycle} />}
-      <main className="wrap">
+      <main className="mx-auto max-w-[780px] px-[1.125rem] pb-20">
         {data.apartments.map((apt) => (
           <Apartment key={apt.name} apt={apt} theme={resolved} />
         ))}
-        <footer>
+        <footer className="pt-5 text-center text-[0.6875rem] tracking-[0.015em] text-faint">
           {formatKstDateTime(new Date(data.generatedAt))} 기준 · 국토교통부 · KB부동산 · 네이버
           부동산
         </footer>

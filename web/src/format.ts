@@ -9,7 +9,7 @@ export function signedPct(value: number): string {
   return `${value >= 0 ? "+" : "−"}${Math.abs(value).toFixed(1)}%`;
 }
 
-/** 상승/하락 색 클래스 */
-export function tone(value: number): string {
-  return value >= 0 ? "pos" : "neg";
+/** 상승/하락 색 */
+export function toneClass(value: number): string {
+  return value >= 0 ? "text-pos" : "text-neg";
 }

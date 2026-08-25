@@ -14,17 +14,17 @@ export interface ChartTokens {
 }
 
 const TOKEN_NAMES: Record<keyof ChartTokens, string> = {
-  deal: "--deal",
-  ask: "--ask",
-  kb: "--kb",
-  mine: "--mine",
-  border: "--border",
-  grid: "--grid",
-  bandAsk: "--band-ask",
-  bandKb: "--band-kb",
-  muted: "--muted",
-  card: "--card",
-  text: "--text",
+  deal: "--color-deal",
+  ask: "--color-ask",
+  kb: "--color-kb",
+  mine: "--color-mine",
+  border: "--color-border",
+  grid: "--color-grid",
+  bandAsk: "--color-band-ask",
+  bandKb: "--color-band-kb",
+  muted: "--color-muted",
+  card: "--color-card",
+  text: "--color-text",
 };
 
 /**

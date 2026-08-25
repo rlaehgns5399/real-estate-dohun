@@ -1,8 +1,8 @@
-/** details/summary 펼침 표시. CSS가 [open] 상태에서 회전시킨다. */
+/** details/summary 펼침 표시. 부모 details가 열리면 90도 돈다. */
 export function Chevron() {
   return (
     <svg
-      className="chev"
+      className="chev ml-auto size-[13px] shrink-0 text-faint transition-transform duration-200 ease-out-strong group-open:rotate-90"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

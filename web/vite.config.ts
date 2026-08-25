@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -9,7 +10,7 @@ export default defineConfig({
   root: webRoot,
   // GitHub Pages는 /<repo>/ 하위에 올라가므로 상대 경로로 뽑는다.
   base: "./",
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   build: {
     outDir: resolve(repoRoot, "dist"),
     emptyOutDir: true,

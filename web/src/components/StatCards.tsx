@@ -1,24 +1,29 @@
 import type { ApartmentPage } from "@shared/types/page";
 import { formatEok } from "@shared/utils/format";
+import { Card } from "@/components/Card";
 import { signedEok } from "@/format";
 
-function StatCard({
+function Stat({
   label,
   value,
   note,
-  tone,
+  valueClass = "",
 }: {
   label: string;
   value: string;
   note: string;
-  tone?: string;
+  valueClass?: string;
 }) {
   return (
-    <div className={`card stat ${tone ?? ""}`}>
-      <div className="label">{label}</div>
-      <div className="value">{value}</div>
-      <div className="note">{note}</div>
-    </div>
+    <Card className="px-[0.9375rem] pb-4 pt-3.5">
+      <div className="text-[0.6875rem] font-medium tracking-[0.02em] text-muted">{label}</div>
+      <div
+        className={`my-[0.1875rem] text-[1.375rem] font-[650] leading-[1.15] tracking-[-0.022em] tabular-nums ${valueClass}`}
+      >
+        {value}
+      </div>
+      <div className="text-[0.6875rem] leading-[1.45] tracking-[0.012em] text-faint">{note}</div>
+    </Card>
   );
 }
 
@@ -43,25 +48,25 @@ export function StatCards({ apt }: { apt: ApartmentPage }) {
       .join(" · ") || "최근 7일 변동 없음";
 
   return (
-    <section className="stats reveal reveal-3">
-      <StatCard
+    <section className="reveal reveal-3 mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <Stat
         label="최저 호가"
         value={s.lowestAsk !== null ? formatEok(s.lowestAsk) : "—"}
         note={s.medianAsk !== null ? `중앙값 ${formatEok(s.medianAsk)}` : "매물 없음"}
-        tone="ask"
+        valueClass="text-ask"
       />
-      <StatCard
+      <Stat
         label="KB 일반가"
         value={s.kbGeneral !== null ? formatEok(s.kbGeneral) : "—"}
         note={kbNote}
-        tone="kb"
+        valueClass="text-kb"
       />
-      <StatCard
+      <Stat
         label="호가 − 실거래"
         value={s.askDealGap === null ? "—" : signedEok(s.askDealGap)}
         note={gapNote}
       />
-      <StatCard label="현재 매물" value={`${s.activeCount}건`} note={listingNote} />
+      <Stat label="현재 매물" value={`${s.activeCount}건`} note={listingNote} />
     </section>
   );
 }

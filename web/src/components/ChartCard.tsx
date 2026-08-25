@@ -13,6 +13,7 @@ import {
 import zoomPlugin from "chartjs-plugin-zoom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readChartTokens } from "@/chartTokens";
+import { Card, SectionTitle } from "@/components/Card";
 import type { ResolvedTheme } from "@/hooks/useTheme";
 
 // 필요한 것만 등록한다. chart.js/auto를 쓰면 안 쓰는 컨트롤러까지 번들에 들어간다.
@@ -49,7 +50,7 @@ const SERIES: Series[] = [
     label: "실거래",
     labels: ["실거래"],
     swatch: "dot",
-    color: "var(--deal)",
+    color: "var(--color-deal)",
     present: (a) => a.chart.transactions.length > 0,
   },
   {
@@ -57,7 +58,7 @@ const SERIES: Series[] = [
     label: "호가 최저~최고",
     labels: ["호가 최고", "호가 최저"],
     swatch: "band",
-    color: "var(--ask)",
+    color: "var(--color-ask)",
     present: (a) => a.chart.askLow.length > 0,
   },
   {
@@ -65,7 +66,7 @@ const SERIES: Series[] = [
     label: "KB 일반가",
     labels: ["KB 일반가"],
     swatch: "line",
-    color: "var(--kb)",
+    color: "var(--color-kb)",
     present: (a) => a.chart.kbGeneral.length > 0,
   },
   {
@@ -73,7 +74,7 @@ const SERIES: Series[] = [
     label: "KB 하위~상위",
     labels: ["KB 상위평균", "KB 하위평균"],
     swatch: "band",
-    color: "var(--kb)",
+    color: "var(--color-kb)",
     present: (a) => a.chart.kbLower.length > 0,
   },
   {
@@ -81,21 +82,38 @@ const SERIES: Series[] = [
     label: "매입가",
     labels: ["매입가"],
     swatch: "dash",
-    color: "var(--mine)",
+    color: "var(--color-mine)",
     present: (a) => a.summary.purchasePrice !== null,
   },
 ];
 
-function swatchClass(kind: Series["swatch"]): string {
-  if (kind === "dot") return "swatch dot";
-  if (kind === "dash") return "swatch dash";
-  return "swatch";
-}
-
-function swatchStyle(series: Series): React.CSSProperties {
-  if (series.swatch === "dash") return { color: series.color };
-  if (series.swatch === "band") return { background: series.color, opacity: 0.5 };
-  return { background: series.color };
+/** 범례 칩의 색 표식 — 점 / 실선 / 밴드 / 점선 */
+function Swatch({ series }: { series: Series }) {
+  if (series.swatch === "dot") {
+    return (
+      <i
+        className="inline-block size-2 shrink-0 rounded-full"
+        style={{ background: series.color }}
+      />
+    );
+  }
+  if (series.swatch === "dash") {
+    return (
+      <i
+        className="inline-block h-[2.5px] w-3.5 shrink-0 rounded-sm"
+        style={{
+          color: series.color,
+          background: "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
+        }}
+      />
+    );
+  }
+  return (
+    <i
+      className="inline-block h-[2.5px] w-3.5 shrink-0 rounded-sm"
+      style={{ background: series.color, opacity: series.swatch === "band" ? 0.5 : 1 }}
+    />
+  );
 }
 
 const monthDay = (ms: number) => {
@@ -355,32 +373,37 @@ export function ChartCard({ apt, theme }: Props) {
   };
 
   return (
-    <section>
-      <h2>시세 추이</h2>
-      <div className="card chart-card">
-        <div className="chart-head">
-          <div className="legend">
+    <section className="mb-6">
+      <SectionTitle>시세 추이</SectionTitle>
+      <Card large className="px-4 pb-[0.9375rem] pt-[1.125rem]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="mb-3.5 flex flex-wrap gap-1.5">
             {visibleSeries.map((series) => (
               <button
                 key={series.key}
                 type="button"
-                className="legend-item"
                 aria-pressed={!hidden.has(series.key)}
                 onClick={() => toggle(series.key)}
+                className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-[0.5625rem] py-1 text-[0.6875rem] tracking-[0.015em] transition-[transform,opacity,border-color,background-color] duration-150 ease-out-strong hover:border-faint active:scale-[0.94] aria-[pressed=false]:bg-transparent aria-[pressed=false]:text-muted aria-[pressed=false]:opacity-45 motion-reduce:transition-colors motion-reduce:active:scale-100"
               >
-                <i className={swatchClass(series.swatch)} style={swatchStyle(series)} />
+                <Swatch series={series} />
                 {series.label}
               </button>
             ))}
           </div>
-          <button type="button" className="chart-reset" hidden={!zoomed} onClick={reset}>
+          <button
+            type="button"
+            hidden={!zoomed}
+            onClick={reset}
+            className="shrink-0 cursor-pointer whitespace-nowrap rounded-chip border border-border bg-card px-2 py-1 text-[0.6875rem] font-medium tracking-[0.015em] text-muted transition-[transform,color] duration-150 ease-out-strong hover:text-text active:scale-[0.96] motion-reduce:transition-colors motion-reduce:active:scale-100"
+          >
             초기화
           </button>
         </div>
-        <div className="chart-box">
-          <canvas ref={canvasRef} />
+        <div className="relative h-[306px] sm:h-[348px]">
+          <canvas ref={canvasRef} className="chart-canvas" />
         </div>
-      </div>
+      </Card>
     </section>
   );
 }
