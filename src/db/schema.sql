@@ -49,3 +49,21 @@ CREATE INDEX idx_transactions_apartment ON transactions(apartment_name, deal_dat
 CREATE INDEX idx_listings_complex_active ON listings(naver_complex_id, is_active);
 CREATE INDEX idx_listings_article ON listings(article_id);
 CREATE INDEX idx_kb_prices_apartment ON kb_prices(apartment_name, fetched_at DESC);
+
+-- 호가 범위 스냅샷 (네이버)
+-- listings 테이블은 가격 변동 시 행을 덮어써서 과거 호가를 복원할 수 없다.
+-- 실행할 때마다 그 시점의 실제 호가 범위를 여기에 기록해 차트가 추론 없이 그리도록 한다.
+CREATE TABLE ask_snapshots (
+  id SERIAL PRIMARY KEY,
+  naver_complex_id TEXT NOT NULL,
+  area NUMERIC(6,2) NOT NULL, -- 전용면적 ㎡
+  snapshot_date DATE NOT NULL,
+  low INTEGER NOT NULL, -- 최저 호가 (만원)
+  median INTEGER NOT NULL,
+  high INTEGER NOT NULL,
+  listing_count INTEGER NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(naver_complex_id, area, snapshot_date)
+);
+
+CREATE INDEX idx_ask_snapshots_complex ON ask_snapshots(naver_complex_id, snapshot_date DESC);

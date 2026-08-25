@@ -1,6 +1,7 @@
 import { fetchListings } from "@/collectors/naver";
 import { supabase } from "@/db/client";
 import type { ApartmentItem, Listing, ListingDiff } from "@/types";
+import { parsePriceText } from "@/utils/format";
 
 interface DbListingRow {
   id: number;
@@ -91,10 +92,7 @@ async function detectPriceChanges(
 
 async function updateActiveTimestamps(ids: number[]): Promise<void> {
   if (ids.length === 0) return;
-  await supabase
-    .from("listings")
-    .update({ last_seen_at: new Date().toISOString() })
-    .in("id", ids);
+  await supabase.from("listings").update({ last_seen_at: new Date().toISOString() }).in("id", ids);
 }
 
 async function deactivateListings(ids: number[]): Promise<void> {
@@ -103,6 +101,38 @@ async function deactivateListings(ids: number[]): Promise<void> {
     .from("listings")
     .update({ is_active: false, last_seen_at: new Date().toISOString() })
     .in("id", ids);
+}
+
+/**
+ * 이 시점의 실제 호가 범위를 기록한다.
+ *
+ * listings는 가격이 바뀌면 행을 덮어쓰므로 과거 호가를 되살릴 수 없다.
+ * 매 실행마다 관측한 값을 그대로 남겨야 차트가 추론 없이 과거를 그릴 수 있다.
+ */
+async function recordAskSnapshot(apt: ApartmentItem, listings: Listing[]): Promise<void> {
+  const prices = listings
+    .map((l) => parsePriceText(l.price))
+    .filter((p) => p > 0)
+    .sort((a, b) => a - b);
+
+  if (prices.length === 0) return;
+
+  const { error } = await supabase.from("ask_snapshots").upsert(
+    {
+      naver_complex_id: apt.naverComplexId,
+      area: apt.targetArea,
+      snapshot_date: new Date().toISOString().slice(0, 10),
+      low: prices[0],
+      median: prices[Math.floor(prices.length / 2)],
+      high: prices[prices.length - 1],
+      listing_count: prices.length,
+    },
+    { onConflict: "naver_complex_id,area,snapshot_date" },
+  );
+
+  if (error) {
+    console.error(`[snapshot] 호가 범위 기록 실패 (ask_snapshots 테이블 확인): ${error.message}`);
+  }
 }
 
 /** 매물 스냅샷을 저장하고 이전 대비 변동사항을 반환 */
@@ -127,11 +157,19 @@ export async function updateListingsSnapshot(apt: ApartmentItem): Promise<Listin
   await updateActiveTimestamps(stillActiveIds);
   await deactivateListings(removedRows.map((r) => r.id));
 
+  await recordAskSnapshot(apt, currentListings);
+
   const removedListings = removedRows.map((r) => dbRowToListing(r, naverComplexId));
 
   console.log(
     `[snapshot] 단지 ${naverComplexId}: 신규 ${newListings.length}건, 삭제 ${removedListings.length}건, 활성 ${currentListings.length}건`,
   );
 
-  return { allListings: currentListings, newListings, removedListings, priceChangedListings, totalActive: currentListings.length };
+  return {
+    allListings: currentListings,
+    newListings,
+    removedListings,
+    priceChangedListings,
+    totalActive: currentListings.length,
+  };
 }
