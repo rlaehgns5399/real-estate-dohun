@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T04:08:15.992Z",
+  "generatedAt": "2026-08-26T01:32:06.743Z",
   "apartments": [
     {
       "name": "강동리엔파크14단지",
@@ -14,15 +14,14 @@
           "dealDate": "2026-07-12",
           "price": 93000,
           "area": 49.69,
-          "floor": 10,
-          "dong": ""
+          "floor": 10
         },
         "kbGeneral": 90000,
         "kbLower": 85000,
         "kbUpper": 95000,
         "activeCount": 18,
-        "newCount": 17,
-        "removedCount": 39,
+        "newCount": 16,
+        "removedCount": 33,
         "askDealGap": -1000,
         "purchasePrice": 89000,
         "vsPurchase": 4000,
@@ -148,12 +147,12 @@
           {
             "t": 1773360000000,
             "y": 85000,
-            "floor": 6
+            "floor": 3
           },
           {
             "t": 1773360000000,
             "y": 85000,
-            "floor": 3
+            "floor": 6
           },
           {
             "t": 1773187200000,
@@ -187,11 +186,11 @@
             "y": 89500
           },
           {
-            "t": 1787313600000,
+            "t": 1787356800000,
             "y": 90000
           },
           {
-            "t": 1787616000000,
+            "t": 1787702400000,
             "y": 90000
           }
         ],
@@ -213,11 +212,11 @@
             "y": 84500
           },
           {
-            "t": 1785628800000,
+            "t": 1785672000000,
             "y": 85000
           },
           {
-            "t": 1787616000000,
+            "t": 1787702400000,
             "y": 85000
           }
         ],
@@ -251,11 +250,11 @@
             "y": 94000
           },
           {
-            "t": 1787313600000,
+            "t": 1787356800000,
             "y": 95000
           },
           {
-            "t": 1787616000000,
+            "t": 1787702400000,
             "y": 95000
           }
         ],
@@ -313,11 +312,11 @@
             "y": 95000
           },
           {
-            "t": 1787011200000,
+            "t": 1787054400000,
             "y": 92000
           },
           {
-            "t": 1787616000000,
+            "t": 1787702400000,
             "y": 92000
           }
         ],
@@ -335,11 +334,11 @@
             "y": 95000
           },
           {
-            "t": 1782043200000,
+            "t": 1782086400000,
             "y": 100000
           },
           {
-            "t": 1787616000000,
+            "t": 1787702400000,
             "y": 100000
           }
         ]
@@ -356,7 +355,21 @@
           "realtorName": "고덕태양공인중개사사무소",
           "confirmDate": "20260822",
           "firstSeenAt": "2026-08-24T00:37:20.436+00:00",
-          "daysOnMarket": 1,
+          "daysOnMarket": 2,
+          "isNew": true
+        },
+        {
+          "articleId": "2645857665",
+          "price": 95000,
+          "priceText": "9억 5,000",
+          "floor": "저층/14층",
+          "buildingName": "1403동",
+          "direction": "남향",
+          "description": "입주추천, 컨디션 최상, 강일역 도보이용, 입주일 협의. 신혼인기단지",
+          "realtorName": "미사서정(031-792-2444)공인중개사사무소",
+          "confirmDate": "20260826",
+          "firstSeenAt": "2026-08-26T01:32:05.474+00:00",
+          "daysOnMarket": 0,
           "isNew": true
         },
         {
@@ -370,20 +383,20 @@
           "realtorName": "미사강변동일하이빌 공인중개사 사무소",
           "confirmDate": "20260821",
           "firstSeenAt": "2026-08-21T09:35:49.339+00:00",
-          "daysOnMarket": 3,
+          "daysOnMarket": 4,
           "isNew": true
         },
         {
-          "articleId": "2645728041",
-          "price": 95000,
-          "priceText": "9억 5,000",
-          "floor": "저층/14층",
-          "buildingName": "1403동",
+          "articleId": "2645827347",
+          "price": 98000,
+          "priceText": "9억 8,000",
+          "floor": "고층/11층",
+          "buildingName": "1402동",
           "direction": "남동향",
-          "description": "입주가능, 예쁜 단지뷰, 채광 굿, 강일역 도보이용, 준신축",
+          "description": "입주협의, 트인뷰, 집상태 굿,다양한 옵션, 붙박이장,채광 좋은 밝은집",
           "realtorName": "자이하나(031-794-2011)공인중개사사무소",
-          "confirmDate": "20260825",
-          "firstSeenAt": "2026-08-25T03:57:14.763+00:00",
+          "confirmDate": "20260826",
+          "firstSeenAt": "2026-08-26T01:32:05.696+00:00",
           "daysOnMarket": 0,
           "isNew": true
         },
@@ -398,7 +411,7 @@
           "realtorName": "미사은호(031-793-9006)공인중개사사무소",
           "confirmDate": "20260819",
           "firstSeenAt": "2026-08-19T06:27:17.478+00:00",
-          "daysOnMarket": 5,
+          "daysOnMarket": 6,
           "isNew": true
         },
         {
@@ -412,21 +425,7 @@
           "realtorName": "소현공인중개사사무소",
           "confirmDate": "20260822",
           "firstSeenAt": "2026-08-24T00:37:21.038+00:00",
-          "daysOnMarket": 1,
-          "isNew": true
-        },
-        {
-          "articleId": "2645614686",
-          "price": 98000,
-          "priceText": "9억 8,000",
-          "floor": "고층/11층",
-          "buildingName": "1402동",
-          "direction": "남동향",
-          "description": "입주협의, 트인뷰, 집상태 굿,다양한 옵션, 붙박이장,채광 좋은 밝은집",
-          "realtorName": "자이하나(031-794-2011)공인중개사사무소",
-          "confirmDate": "20260825",
-          "firstSeenAt": "2026-08-25T03:57:14.976+00:00",
-          "daysOnMarket": 0,
+          "daysOnMarket": 2,
           "isNew": true
         },
         {
@@ -440,7 +439,7 @@
           "realtorName": "랜드윌공인중개사사무소",
           "confirmDate": "20260812",
           "firstSeenAt": "2026-08-13T01:20:17.63+00:00",
-          "daysOnMarket": 12,
+          "daysOnMarket": 13,
           "isNew": false
         },
         {
@@ -454,8 +453,8 @@
           "realtorName": "파크공인중개사사무소",
           "confirmDate": "20260814",
           "firstSeenAt": "2026-08-18T12:28:09.113+00:00",
-          "daysOnMarket": 6,
-          "isNew": true
+          "daysOnMarket": 7,
+          "isNew": false
         },
         {
           "articleId": "2644788518",
@@ -468,7 +467,7 @@
           "realtorName": "미사서정(031-792-2444)공인중개사사무소",
           "confirmDate": "20260820",
           "firstSeenAt": "2026-08-21T09:35:47.263+00:00",
-          "daysOnMarket": 3,
+          "daysOnMarket": 4,
           "isNew": true
         },
         {
@@ -482,7 +481,7 @@
           "realtorName": "미사풍경채명인(795-3220)공인중개사사무소",
           "confirmDate": "20260820",
           "firstSeenAt": "2026-08-21T09:35:47.788+00:00",
-          "daysOnMarket": 3,
+          "daysOnMarket": 4,
           "isNew": true
         },
         {
@@ -496,7 +495,7 @@
           "realtorName": "미사은호(031-793-9006)공인중개사사무소",
           "confirmDate": "20260821",
           "firstSeenAt": "2026-08-21T09:35:48.732+00:00",
-          "daysOnMarket": 3,
+          "daysOnMarket": 4,
           "isNew": true
         },
         {
@@ -510,7 +509,7 @@
           "realtorName": "미사강변동일하이빌 공인중개사 사무소",
           "confirmDate": "20260819",
           "firstSeenAt": "2026-08-19T06:27:17.856+00:00",
-          "daysOnMarket": 5,
+          "daysOnMarket": 6,
           "isNew": true
         },
         {
@@ -524,7 +523,7 @@
           "realtorName": "미사강변동일하이빌 공인중개사 사무소",
           "confirmDate": "20260819",
           "firstSeenAt": "2026-08-19T06:27:18.037+00:00",
-          "daysOnMarket": 5,
+          "daysOnMarket": 6,
           "isNew": true
         },
         {
@@ -538,7 +537,7 @@
           "realtorName": "큰문공인중개사사무소",
           "confirmDate": "20260822",
           "firstSeenAt": "2026-08-24T00:37:20.629+00:00",
-          "daysOnMarket": 1,
+          "daysOnMarket": 2,
           "isNew": true
         },
         {
@@ -552,7 +551,7 @@
           "realtorName": "큰문공인중개사사무소",
           "confirmDate": "20260822",
           "firstSeenAt": "2026-08-24T00:37:20.838+00:00",
-          "daysOnMarket": 1,
+          "daysOnMarket": 2,
           "isNew": true
         },
         {
@@ -566,7 +565,7 @@
           "realtorName": "미사은호(031-793-9006)공인중개사사무소",
           "confirmDate": "20260824",
           "firstSeenAt": "2026-08-24T09:55:51.228+00:00",
-          "daysOnMarket": 0,
+          "daysOnMarket": 1,
           "isNew": true
         },
         {
@@ -580,7 +579,7 @@
           "realtorName": "미사은호(031-793-9006)공인중개사사무소",
           "confirmDate": "20260824",
           "firstSeenAt": "2026-08-24T09:55:51.658+00:00",
-          "daysOnMarket": 0,
+          "daysOnMarket": 1,
           "isNew": true
         },
         {
@@ -594,15 +593,50 @@
           "realtorName": "미사강변동일하이빌공인중개사사무소",
           "confirmDate": "20260824",
           "firstSeenAt": "2026-08-24T09:55:52.013+00:00",
-          "daysOnMarket": 0,
+          "daysOnMarket": 1,
           "isNew": true
         }
       ],
       "timeline": [
         {
+          "date": "2026-08-26",
+          "type": "new",
+          "label": "신규 매물",
+          "detail": "2건 · 9.5억 ~ 9.8억",
+          "items": [
+            {
+              "price": 95000,
+              "where": "1403동 · 저층/14층",
+              "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
+            },
+            {
+              "price": 98000,
+              "where": "1402동 · 고층/11층",
+              "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-26",
+          "type": "removed",
+          "label": "매물 내려감",
+          "detail": "2건 · 9.5억 ~ 9.8억",
+          "items": [
+            {
+              "price": 95000,
+              "where": "1403동 · 저층/14층",
+              "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
+            },
+            {
+              "price": 98000,
+              "where": "1402동 · 고층/11층",
+              "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
+            }
+          ]
+        },
+        {
           "date": "2026-08-25",
           "type": "new",
-          "count": 2,
           "label": "신규 매물",
           "detail": "2건 · 9.5억 ~ 9.8억",
           "items": [
@@ -621,7 +655,6 @@
         {
           "date": "2026-08-25",
           "type": "removed",
-          "count": 2,
           "label": "매물 내려감",
           "detail": "2건 · 9.5억 ~ 9.8억",
           "items": [
@@ -640,7 +673,6 @@
         {
           "date": "2026-08-24",
           "type": "new",
-          "count": 13,
           "label": "신규 매물",
           "detail": "13건 · 9.2억 ~ 10억",
           "items": [
@@ -714,7 +746,6 @@
         {
           "date": "2026-08-24",
           "type": "removed",
-          "count": 13,
           "label": "매물 내려감",
           "detail": "13건 · 9.2억 ~ 10억",
           "items": [
@@ -788,7 +819,6 @@
         {
           "date": "2026-08-21",
           "type": "new",
-          "count": 11,
           "label": "신규 매물",
           "detail": "11건 · 9.5억 ~ 10억",
           "items": [
@@ -852,7 +882,6 @@
         {
           "date": "2026-08-21",
           "type": "removed",
-          "count": 10,
           "label": "매물 내려감",
           "detail": "10건 · 9.5억 ~ 10억",
           "items": [
@@ -911,7 +940,6 @@
         {
           "date": "2026-08-19",
           "type": "new",
-          "count": 8,
           "label": "신규 매물",
           "detail": "8건 · 9.5억 ~ 10억",
           "items": [
@@ -960,7 +988,6 @@
         {
           "date": "2026-08-19",
           "type": "removed",
-          "count": 6,
           "label": "매물 내려감",
           "detail": "6건 · 9.5억 ~ 10억",
           "items": [
@@ -999,7 +1026,6 @@
         {
           "date": "2026-08-18",
           "type": "new",
-          "count": 9,
           "label": "신규 매물",
           "detail": "9건 · 9.5억 ~ 10억",
           "items": [
@@ -1053,7 +1079,6 @@
         {
           "date": "2026-08-18",
           "type": "removed",
-          "count": 8,
           "label": "매물 내려감",
           "detail": "8건 · 9.8억 ~ 10억",
           "items": [
@@ -1102,7 +1127,6 @@
         {
           "date": "2026-08-13",
           "type": "new",
-          "count": 5,
           "label": "신규 매물",
           "detail": "5건 · 9.8억 ~ 10억",
           "items": [
@@ -1136,7 +1160,6 @@
         {
           "date": "2026-08-13",
           "type": "removed",
-          "count": 5,
           "label": "매물 내려감",
           "detail": "5건 · 9.8억 ~ 10억",
           "items": [
@@ -1166,99 +1189,6 @@
               "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
             }
           ]
-        },
-        {
-          "date": "2026-08-11",
-          "type": "new",
-          "count": 14,
-          "label": "신규 매물",
-          "detail": "14건 · 9.2억 ~ 10억",
-          "items": [
-            {
-              "price": 92000,
-              "where": "1403동 · 저층/14층",
-              "note": "남향 · 고덕태양공인중개사사무소"
-            },
-            {
-              "price": 98000,
-              "where": "1402동 · 고층/11층",
-              "note": "남향 · 소현공인중개사사무소"
-            },
-            {
-              "price": 98000,
-              "where": "1402동 · 고층/11층",
-              "note": "남향 · 파크공인중개사사무소"
-            },
-            {
-              "price": 98000,
-              "where": "1403동 · 저층/14층",
-              "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 7층/14층",
-              "note": "남동향 · 1번지힐스테이트공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 7층/14층",
-              "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 7층/14층",
-              "note": "남향 · 소현공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남향 · 파크공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남동향 · 그라시움봄날(406-4900)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남향 · 랜드윌공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 저층/14층",
-              "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남서향 · 미사은호(031-793-9006)공인중개사사무소"
-            },
-            {
-              "price": 100000,
-              "where": "1403동 · 고층/14층",
-              "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
-            }
-          ]
-        },
-        {
-          "date": "2026-08-11",
-          "type": "removed",
-          "count": 1,
-          "label": "매물 내려감",
-          "detail": "1건 · 10억",
-          "items": [
-            {
-              "price": 100000,
-              "where": "1403동 · 저층/14층",
-              "note": "남동향 · 행복동원공인중개사사무소"
-            }
-          ]
         }
       ],
       "transactions": [
@@ -1266,183 +1196,157 @@
           "dealDate": "2026-07-12",
           "price": 93000,
           "area": 49.69,
-          "floor": 10,
-          "dong": ""
+          "floor": 10
         },
         {
           "dealDate": "2026-07-12",
           "price": 87000,
           "area": 49.69,
-          "floor": 1,
-          "dong": ""
+          "floor": 1
         },
         {
           "dealDate": "2026-07-04",
           "price": 87700,
           "area": 49.69,
-          "floor": 6,
-          "dong": ""
+          "floor": 6
         },
         {
           "dealDate": "2026-06-03",
           "price": 83500,
           "area": 49.69,
-          "floor": 1,
-          "dong": ""
+          "floor": 1
         },
         {
           "dealDate": "2026-05-30",
           "price": 95000,
           "area": 49.69,
-          "floor": 8,
-          "dong": ""
+          "floor": 8
         },
         {
           "dealDate": "2026-05-26",
           "price": 89500,
           "area": 49.69,
-          "floor": 11,
-          "dong": ""
+          "floor": 11
         },
         {
           "dealDate": "2026-05-25",
           "price": 89900,
           "area": 49.69,
-          "floor": 4,
-          "dong": ""
+          "floor": 4
         },
         {
           "dealDate": "2026-05-18",
           "price": 95000,
           "area": 49.69,
-          "floor": 7,
-          "dong": ""
+          "floor": 7
         },
         {
           "dealDate": "2026-05-12",
           "price": 90000,
           "area": 49.69,
-          "floor": 10,
-          "dong": ""
+          "floor": 10
         },
         {
           "dealDate": "2026-05-08",
           "price": 88000,
           "area": 49.69,
-          "floor": 8,
-          "dong": ""
+          "floor": 8
         },
         {
           "dealDate": "2026-05-07",
           "price": 86500,
           "area": 49.69,
-          "floor": 3,
-          "dong": ""
+          "floor": 3
         },
         {
           "dealDate": "2026-05-05",
           "price": 89800,
           "area": 49.69,
-          "floor": 9,
-          "dong": ""
+          "floor": 9
         },
         {
           "dealDate": "2026-05-05",
           "price": 88000,
           "area": 49.69,
-          "floor": 3,
-          "dong": ""
+          "floor": 3
         },
         {
           "dealDate": "2026-05-02",
           "price": 88800,
           "area": 49.69,
-          "floor": 10,
-          "dong": ""
+          "floor": 10
         },
         {
           "dealDate": "2026-04-30",
           "price": 87000,
           "area": 49.69,
-          "floor": 5,
-          "dong": ""
+          "floor": 5
         },
         {
           "dealDate": "2026-04-27",
           "price": 87000,
           "area": 49.69,
-          "floor": 4,
-          "dong": ""
+          "floor": 4
         },
         {
           "dealDate": "2026-04-17",
           "price": 85500,
           "area": 49.69,
-          "floor": 2,
-          "dong": ""
+          "floor": 2
         },
         {
           "dealDate": "2026-04-13",
           "price": 89000,
           "area": 49.69,
-          "floor": 14,
-          "dong": ""
+          "floor": 14
         },
         {
           "dealDate": "2026-04-11",
           "price": 88000,
           "area": 49.69,
-          "floor": 9,
-          "dong": ""
+          "floor": 9
         },
         {
           "dealDate": "2026-04-11",
           "price": 86700,
           "area": 49.69,
-          "floor": 14,
-          "dong": ""
+          "floor": 14
         },
         {
           "dealDate": "2026-04-07",
           "price": 88500,
           "area": 49.69,
-          "floor": 7,
-          "dong": ""
+          "floor": 7
         },
         {
           "dealDate": "2026-04-04",
           "price": 84000,
           "area": 49.69,
-          "floor": 3,
-          "dong": ""
+          "floor": 3
         },
         {
           "dealDate": "2026-03-18",
           "price": 88000,
           "area": 49.69,
-          "floor": 11,
-          "dong": ""
+          "floor": 11
         },
         {
           "dealDate": "2026-03-13",
           "price": 85000,
           "area": 49.69,
-          "floor": 6,
-          "dong": ""
+          "floor": 3
         },
         {
           "dealDate": "2026-03-13",
           "price": 85000,
           "area": 49.69,
-          "floor": 3,
-          "dong": ""
+          "floor": 6
         },
         {
           "dealDate": "2026-03-11",
           "price": 85000,
           "area": 49.69,
-          "floor": 10,
-          "dong": ""
+          "floor": 10
         }
       ]
     }
