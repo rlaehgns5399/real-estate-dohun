@@ -1,11 +1,13 @@
 import type { ApartmentPage } from "@shared/types/page";
-import { formatEok } from "@shared/utils/format";
+import { formatEok, formatKstDateTime } from "@shared/utils/format";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { signedPct, toneClass } from "@/format";
 import type { ThemeChoice } from "@/hooks/useTheme";
 
 interface Props {
   apt: ApartmentPage;
+  /** data/latest.json이 만들어진 시각 (ISO) */
+  generatedAt: string;
   choice: ThemeChoice;
   onCycleTheme: () => void;
 }
@@ -16,14 +18,27 @@ interface Props {
  * 반투명 머티리얼 위로 콘텐츠가 흘러가고, 아래 경계는 선이 아니라
  * 그라데이션 마스크(.topbar-fade)로 흐린다.
  */
-export function Topbar({ apt, choice, onCycleTheme }: Props) {
+export function Topbar({ apt, generatedAt, choice, onCycleTheme }: Props) {
   const { lastDeal, vsPurchasePct } = apt.summary;
+
+  // "2026.08.26 10:32" → 연도와 나머지로 쪼갠다
+  const stamp = formatKstDateTime(new Date(generatedAt));
+  const [year, ...rest] = stamp.split(".");
+  const monthDayTime = rest.join(".");
 
   return (
     <div className="topbar-glass topbar-fade sticky top-0 z-20 bg-scrim backdrop-blur-[24px] backdrop-saturate-[1.8]">
       <div className="mx-auto flex max-w-[780px] items-center justify-between gap-4 px-[1.125rem] py-3">
-        <span className="truncate text-[0.8125rem] font-semibold tracking-[-0.005em] text-muted">
-          {apt.name} {apt.targetArea}㎡
+        {/* 이름은 좁아지면 잘리고, 시각은 항상 보이게 둔다 */}
+        <span className="flex min-w-0 items-baseline gap-1.5 text-[0.8125rem] tracking-[-0.005em]">
+          <span className="truncate font-semibold text-muted">
+            {apt.name} {apt.targetArea}㎡
+          </span>
+          {/* 좁은 화면에서는 연도를 뺀다. 단지명이 잘리는 것보다 낫다. */}
+          <span className="shrink-0 tabular-nums text-faint">
+            (<span className="hidden sm:inline">{year}.</span>
+            {monthDayTime})
+          </span>
         </span>
         <span className="flex shrink-0 items-center gap-2.5">
           <span className="whitespace-nowrap text-[0.8125rem] font-semibold tracking-[-0.01em] tabular-nums">
