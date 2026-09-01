@@ -1,5 +1,5 @@
-import { readFile, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 /**
@@ -20,27 +20,49 @@ const SSR_ENTRY = resolve(ROOT, "dist-ssr/entry-server.js");
 const PLACEHOLDER = '<div id="root"></div>';
 
 async function main() {
-  const { render } = (await import(pathToFileURL(SSR_ENTRY).href)) as { render: () => string };
-  const markup = render();
+  const { render, areas } = (await import(pathToFileURL(SSR_ENTRY).href)) as {
+    render: (area: number | null) => string;
+    areas: () => number[];
+  };
 
-  const html = await readFile(HTML, "utf-8");
-  if (!html.includes(PLACEHOLDER)) {
+  const template = await readFile(HTML, "utf-8");
+  if (!template.includes(PLACEHOLDER)) {
     throw new Error(
       `[prerender] dist/index.html에서 ${PLACEHOLDER}를 찾지 못했습니다. ` +
         "이미 채워졌거나 템플릿이 바뀌었습니다.",
     );
   }
 
-  await writeFile(HTML, html.replace(PLACEHOLDER, `<div id="root">${markup}</div>`));
+  const all = areas();
+  const [primary] = all;
+
+  /*
+   * 면적마다 파일을 하나씩 만든다.
+   *
+   * 기본 면적은 루트(index.html), 나머지는 /59/index.html처럼 하위 경로에 둔다.
+   * 정적 호스팅도 하위 경로에 파일이 있으면 그대로 서빙하므로 SPA 폴백이 필요 없다.
+   * 이래야 /59/로 바로 들어와도 서버가 처음부터 59를 그린 HTML을 준다 — 쿼리(?area=59)
+   * 방식에서는 프리렌더된 마크업이 항상 기본 면적이라 49가 잠깐 보였다가 넘어갔다.
+   */
+  const written: string[] = [];
+  for (const area of all) {
+    const isPrimary = area === primary;
+    const markup = render(isPrimary ? null : area);
+    const html = template.replace(PLACEHOLDER, `<div id="root">${markup}</div>`);
+
+    const out = isPrimary ? HTML : resolve(ROOT, `dist/${area}/index.html`);
+    await mkdir(dirname(out), { recursive: true });
+    await writeFile(out, html);
+
+    written.push(
+      `${isPrimary ? "index.html" : `${area}/index.html`} ${(Buffer.byteLength(html) / 1024).toFixed(1)}KB`,
+    );
+  }
 
   // SSR 번들은 여기서만 쓰고 버린다. 배포 산출물(dist)에 섞이면 안 된다.
   await rm(resolve(ROOT, "dist-ssr"), { recursive: true, force: true });
 
-  const before = Buffer.byteLength(html);
-  const after = before + Buffer.byteLength(markup);
-  console.log(
-    `[prerender] dist/index.html에 마크업 주입 — ${(before / 1024).toFixed(1)}KB → ${(after / 1024).toFixed(1)}KB`,
-  );
+  console.log(`[prerender] ${written.join(" · ")}`);
 }
 
 main().catch((err) => {

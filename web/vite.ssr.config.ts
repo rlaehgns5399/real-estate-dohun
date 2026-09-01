@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 const webRoot = import.meta.dirname;
 const repoRoot = resolve(webRoot, "..");
 
+/** 배포 경로. GitHub Pages는 https://<user>.github.io/<repo>/ 로 서빙한다. */
+const BASE = "/real-estate-dohun/";
+
 /**
  * 프리렌더용 SSR 번들.
  *
@@ -14,6 +17,7 @@ const repoRoot = resolve(webRoot, "..");
  */
 export default defineConfig({
   root: webRoot,
+  base: BASE,
   plugins: [react()],
   build: {
     ssr: resolve(webRoot, "src/entry-server.tsx"),

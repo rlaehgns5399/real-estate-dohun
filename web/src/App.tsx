@@ -84,9 +84,9 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
   );
 }
 
-export function App({ data }: { data: PageData }) {
+export function App({ data, initialArea = null }: { data: PageData; initialArea?: number | null }) {
   const { choice, resolved, cycle } = useTheme();
-  const [routeArea, selectArea] = useAreaRoute();
+  const [routeArea, selectArea] = useAreaRoute(initialArea);
 
   // 주소에 적힌 면적을 모든 단지에 똑같이 적용한다. 그 면적이 없는 단지는 첫 면적을 본다.
   const areaOf = (apt: ApartmentPage) =>
@@ -94,6 +94,9 @@ export function App({ data }: { data: PageData }) {
 
   const first = data.apartments[0];
   const firstArea = first ? areaOf(first) : undefined;
+
+  /** 기본 면적(첫 번째)은 루트 주소를 쓴다 */
+  const onSelectArea = (area: number) => selectArea(area, area === first?.areas[0]?.area);
 
   // 탭 제목은 지금 보고 있는 아파트·면적을 따른다 (index.html의 기본값을 덮어쓴다).
   useEffect(() => {
@@ -111,7 +114,7 @@ export function App({ data }: { data: PageData }) {
           generatedAt={data.generatedAt}
           choice={choice}
           onCycleTheme={cycle}
-          onSelectArea={selectArea}
+          onSelectArea={onSelectArea}
         />
       )}
       <main className="mx-auto max-w-[780px] px-[1.125rem] pb-20">

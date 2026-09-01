@@ -2,6 +2,7 @@ import type { PageData } from "@shared/types/page";
 import { StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { App } from "@/App";
+import { areaFromPath } from "@/hooks/useAreaRoute";
 import "@/styles.css";
 
 // 수집 파이프라인이 만든 스냅샷을 빌드 시점에 번들에 그대로 넣는다.
@@ -16,6 +17,6 @@ if (!root) throw new Error("#root를 찾을 수 없습니다.");
 hydrateRoot(
   root,
   <StrictMode>
-    <App data={data as PageData} />
+    <App data={data as PageData} initialArea={areaFromPath(window.location.pathname)} />
   </StrictMode>,
 );
