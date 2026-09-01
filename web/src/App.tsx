@@ -1,5 +1,5 @@
 import type { ApartmentPage, AreaPage, PageData } from "@shared/types/page";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Card, SectionTitle } from "@/components/Card";
 import { Hero } from "@/components/Hero";
 import { ListingList } from "@/components/ListingList";
@@ -36,6 +36,27 @@ function ChartPlaceholder() {
   );
 }
 
+/**
+ * 차트는 마운트 후에만 올린다.
+ *
+ * 프리렌더된 HTML에는 자리(ChartPlaceholder)만 들어간다. 차트는 캔버스를 직접 만지므로
+ * 어차피 서버에서 그릴 수 없고, Suspense 경계를 서버 마크업에 남기면 hydrate 때 React가
+ * "서버가 이 경계를 못 끝냈다"(#419)며 경계를 통째로 버리고 다시 그린다. 첫 클라이언트
+ * 렌더를 서버와 똑같이 자리만 그리게 맞춰 그 왕복을 없앤다.
+ */
+function ChartSlot({ area, theme }: { area: AreaPage; theme: ResolvedTheme }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <ChartPlaceholder />;
+
+  return (
+    <Suspense fallback={<ChartPlaceholder />}>
+      <ChartCard area={area} theme={theme} />
+    </Suspense>
+  );
+}
+
 interface ApartmentProps {
   apt: ApartmentPage;
   area: AreaPage;
@@ -53,9 +74,7 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
       */}
       <div key={area.area} className="swap">
         <StatCards area={area} />
-        <Suspense fallback={<ChartPlaceholder />}>
-          <ChartCard area={area} theme={theme} />
-        </Suspense>
+        <ChartSlot area={area} theme={theme} />
         <ListingList area={area} />
         <RentCard area={area} />
         <Timeline area={area} />

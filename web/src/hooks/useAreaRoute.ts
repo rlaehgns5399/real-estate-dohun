@@ -20,9 +20,18 @@ function readParam(): number | null {
  * 내려주고, 라우팅은 온전히 브라우저에서 끝난다.
  */
 export function useAreaRoute(): [number | null, (area: number) => void] {
-  const [area, setArea] = useState<number | null>(readParam);
+  /*
+   * 첫 렌더는 주소를 보지 않고 null(기본 면적)로 시작한다.
+   *
+   * HTML을 빌드 시점에 미리 렌더하는데, 그때는 방문자가 어떤 주소로 들어올지 알 수 없다.
+   * 첫 클라이언트 렌더가 그 마크업과 달라지면 hydrate가 깨지므로, 주소는 마운트된 뒤에
+   * 읽는다. ?area=59로 들어오면 49가 잠깐 보였다가 넘어간다.
+   */
+  const [area, setArea] = useState<number | null>(null);
 
   useEffect(() => {
+    setArea(readParam());
+
     // 뒤로/앞으로가기는 popstate로 들어온다.
     const onPopState = () => setArea(readParam());
     window.addEventListener("popstate", onPopState);
