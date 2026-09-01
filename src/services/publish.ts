@@ -68,7 +68,11 @@ export async function publishData(data: PageData): Promise<void> {
     return;
   }
 
-  const counts = data.apartments.map((a) => `${a.name} 매물 ${a.summary.activeCount}건`).join(", ");
+  const counts = data.apartments
+    .flatMap((a) =>
+      a.areas.map((area) => `${a.name} ${area.area}㎡ 매물 ${area.summary.activeCount}건`),
+    )
+    .join(", ");
 
   await commitAndPush(`data: ${counts}`);
 }

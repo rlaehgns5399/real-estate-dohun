@@ -1,4 +1,4 @@
-import type { ApartmentPage } from "@shared/types/page";
+import type { AreaPage } from "@shared/types/page";
 import { formatEok } from "@shared/utils/format";
 import { Card } from "@/components/Card";
 import { signedEok } from "@/format";
@@ -27,8 +27,9 @@ function Stat({
   );
 }
 
-export function StatCards({ apt }: { apt: ApartmentPage }) {
-  const s = apt.summary;
+export function StatCards({ area }: { area: AreaPage }) {
+  const s = area.summary;
+  const { rent } = area;
 
   const kbNote =
     s.kbLower !== null && s.kbUpper !== null
@@ -55,12 +56,26 @@ export function StatCards({ apt }: { apt: ApartmentPage }) {
         note={s.medianAsk !== null ? `중앙값 ${formatEok(s.medianAsk)}` : "매물 없음"}
         valueClass="text-ask"
       />
-      <Stat
-        label="KB 일반가"
-        value={s.kbGeneral !== null ? formatEok(s.kbGeneral) : "—"}
-        note={kbNote}
-        valueClass="text-kb"
-      />
+      {/*
+        KB 시세는 면적 하나에만 붙는다 (kb_prices가 면적을 구분하지 못한다).
+        없는 면적에서 "—"만 남기면 자리가 죽으므로 전세가율로 대신 채운다.
+      */}
+      {s.kbGeneral !== null ? (
+        <Stat label="KB 일반가" value={formatEok(s.kbGeneral)} note={kbNote} valueClass="text-kb" />
+      ) : (
+        <Stat
+          label="전세가율"
+          value={rent.ratioVsAsk !== null ? `${rent.ratioVsAsk.toFixed(1)}%` : "—"}
+          note={
+            rent.jeonseSource === "listing"
+              ? `전세 매물 ${rent.jeonse.length}건 기준`
+              : rent.jeonseSource === "kb"
+                ? "KB 전세 시세 기준"
+                : "전세 시세 없음"
+          }
+          valueClass="text-kb"
+        />
+      )}
       <Stat
         label="호가 − 실거래"
         value={s.askDealGap === null ? "—" : signedEok(s.askDealGap)}

@@ -33,13 +33,17 @@ CREATE TABLE listings (
   UNIQUE(naver_complex_id, article_id)
 );
 
--- KB 시세 (매매)
+-- KB 시세 (면적별)
+-- 한 단지에서 여러 면적을 보므로 area 없이는 행을 구분할 수 없다.
+-- 이미 만들어진 테이블은 migrations/001-kb-prices-per-area.sql로 옮긴다.
 CREATE TABLE kb_prices (
   id SERIAL PRIMARY KEY,
   apartment_name TEXT NOT NULL,
-  deal_price_general INTEGER, -- 일반거래가 (만원)
-  deal_price_lower INTEGER, -- 하위 평균가 (만원)
-  deal_price_upper INTEGER, -- 상위 평균가 (만원)
+  area NUMERIC(6,2) NOT NULL, -- 전용면적 ㎡ (items.ts의 관심 면적 값)
+  deal_price_general INTEGER, -- 매매 일반거래가 (만원)
+  deal_price_lower INTEGER, -- 매매 하위 평균가 (만원)
+  deal_price_upper INTEGER, -- 매매 상위 평균가 (만원)
+  jeonse_price_general INTEGER, -- 전세 일반거래가 (만원)
   base_date TEXT,
   fetched_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -48,7 +52,7 @@ CREATE TABLE kb_prices (
 CREATE INDEX idx_transactions_apartment ON transactions(apartment_name, deal_date DESC);
 CREATE INDEX idx_listings_complex_active ON listings(naver_complex_id, is_active);
 CREATE INDEX idx_listings_article ON listings(article_id);
-CREATE INDEX idx_kb_prices_apartment ON kb_prices(apartment_name, fetched_at DESC);
+CREATE INDEX idx_kb_prices_apartment ON kb_prices(apartment_name, area, fetched_at DESC);
 
 -- 호가 범위 스냅샷 (네이버)
 -- listings 테이블은 가격 변동 시 행을 덮어써서 과거 호가를 복원할 수 없다.

@@ -1,4 +1,4 @@
-import type { ApartmentPage } from "@shared/types/page";
+import type { AreaPage } from "@shared/types/page";
 import { formatEok } from "@shared/utils/format";
 import {
   Chart,
@@ -41,7 +41,7 @@ interface Series {
   labels: string[];
   swatch: "dot" | "line" | "band" | "dash";
   color: string;
-  present: (apt: ApartmentPage) => boolean;
+  present: (area: AreaPage) => boolean;
 }
 
 const SERIES: Series[] = [
@@ -130,33 +130,51 @@ const fullDate = (ms: number) => {
 const xy = (points: Array<{ t: number; y: number; floor?: number }>) =>
   points.map((p) => ({ x: p.t, y: p.y, floor: p.floor }));
 
+/**
+ * 관측이 하루뿐인 계열을 축 전체를 가로지르는 평평한 선으로 편다.
+ *
+ * 선은 점이 둘 이상이어야 그려지고 밴드는 면이 생기지 않는다. 면적을 새로 추가한
+ * 첫날이 정확히 그 상태라 점 하나만 덩그러니 남는다. 매입가 기준선과 같은 방식으로
+ * 양 끝까지 늘려 두면 지금 시세가 실거래 분포의 어디쯤인지 바로 읽힌다.
+ *
+ * 과거에도 그 값이었다는 뜻은 아니다 — 관측이 쌓이면 이틀째부터 실제 곡선으로 바뀐다.
+ */
+function stretch(points: Array<{ t: number; y: number }>, bounds: { min: number; max: number }) {
+  if (points.length !== 1) return xy(points);
+  const { y } = points[0];
+  return [
+    { x: bounds.min, y },
+    { x: bounds.max, y },
+  ];
+}
+
 interface Props {
-  apt: ApartmentPage;
+  area: AreaPage;
   theme: ResolvedTheme;
 }
 
-export function ChartCard({ apt, theme }: Props) {
+export function ChartCard({ area, theme }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
 
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
   const [zoomed, setZoomed] = useState(false);
 
-  const visibleSeries = useMemo(() => SERIES.filter((s) => s.present(apt)), [apt]);
+  const visibleSeries = useMemo(() => SERIES.filter((s) => s.present(area)), [area]);
 
   const bounds = useMemo(() => {
     const times = [
-      ...apt.chart.transactions,
-      ...apt.chart.kbGeneral,
-      ...apt.chart.kbLower,
-      ...apt.chart.kbUpper,
-      ...apt.chart.askLow,
-      ...apt.chart.askHigh,
+      ...area.chart.transactions,
+      ...area.chart.kbGeneral,
+      ...area.chart.kbLower,
+      ...area.chart.kbUpper,
+      ...area.chart.askLow,
+      ...area.chart.askHigh,
     ].map((p) => p.t);
 
     if (times.length === 0) return null;
     return { min: Math.min(...times) - X_PAD, max: Math.max(...times) + X_PAD };
-  }, [apt]);
+  }, [area]);
 
   // theme은 effect 본문에서 직접 읽지 않지만 반드시 의존성에 있어야 한다.
   // 팔레트는 CSS 커스텀 프로퍼티로 바뀌는데, 린터는 그 DOM 경로를 볼 수 없어
@@ -170,13 +188,13 @@ export function ChartCard({ apt, theme }: Props) {
     const tokens = readChartTokens();
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const purchase = apt.summary.purchasePrice;
+    const purchase = area.summary.purchasePrice;
 
     const datasets: Array<Record<string, unknown>> = [
       {
         type: "line",
         label: "KB 상위평균",
-        data: xy(apt.chart.kbUpper),
+        data: stretch(area.chart.kbUpper, bounds),
         borderColor: "transparent",
         backgroundColor: tokens.bandKb,
         fill: "+1",
@@ -188,7 +206,7 @@ export function ChartCard({ apt, theme }: Props) {
       {
         type: "line",
         label: "KB 하위평균",
-        data: xy(apt.chart.kbLower),
+        data: stretch(area.chart.kbLower, bounds),
         borderColor: "transparent",
         pointRadius: 0,
         pointHitRadius: 0,
@@ -198,7 +216,7 @@ export function ChartCard({ apt, theme }: Props) {
       {
         type: "line",
         label: "호가 최고",
-        data: xy(apt.chart.askHigh),
+        data: stretch(area.chart.askHigh, bounds),
         borderColor: "transparent",
         backgroundColor: tokens.bandAsk,
         fill: "+1",
@@ -210,7 +228,7 @@ export function ChartCard({ apt, theme }: Props) {
       {
         type: "line",
         label: "호가 최저",
-        data: xy(apt.chart.askLow),
+        data: stretch(area.chart.askLow, bounds),
         borderColor: "transparent",
         pointRadius: 0,
         pointHitRadius: 0,
@@ -220,7 +238,7 @@ export function ChartCard({ apt, theme }: Props) {
       {
         type: "line",
         label: "KB 일반가",
-        data: xy(apt.chart.kbGeneral),
+        data: stretch(area.chart.kbGeneral, bounds),
         borderColor: tokens.kb,
         borderWidth: 1.5,
         pointRadius: 0,
@@ -251,7 +269,7 @@ export function ChartCard({ apt, theme }: Props) {
     datasets.push({
       type: "scatter",
       label: "실거래",
-      data: xy(apt.chart.transactions),
+      data: xy(area.chart.transactions),
       backgroundColor: tokens.deal,
       borderColor: tokens.card,
       borderWidth: 1,
@@ -345,7 +363,7 @@ export function ChartCard({ apt, theme }: Props) {
       chart.destroy();
       chartRef.current = null;
     };
-  }, [apt, theme, bounds]);
+  }, [area, theme, bounds]);
 
   // 범례로 끈 계열을 반영한다. 차트를 새로 만들지 않고 표시 여부만 바꾼다.
   useEffect(() => {

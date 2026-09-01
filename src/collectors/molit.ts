@@ -155,13 +155,13 @@ export async function collectTransactions(): Promise<Transaction[]> {
     for (const dealYm of months) {
       const all = await fetchTransactions(regionCode, dealYm);
 
-      // 관심 아파트별로 이름 + 전용면적 필터
+      // 관심 아파트별로 이름 + 전용면적 필터 (한 단지에서 여러 면적을 볼 수 있다)
       const filtered = all.filter((t) =>
         APARTMENT_ITEMS.some(
           (a) =>
             a.name === t.apartmentName &&
             a.regionCode === regionCode &&
-            Math.abs(t.area - a.targetArea) <= AREA_TOLERANCE,
+            a.areas.some((area) => Math.abs(t.area - area.area) <= AREA_TOLERANCE),
         ),
       );
 

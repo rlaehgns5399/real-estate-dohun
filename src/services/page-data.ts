@@ -1,18 +1,21 @@
 import { APARTMENT_ITEMS } from "@/constants/items";
 import { supabase } from "@/db/client";
-import type { ApartmentItem } from "@/types";
+import type { ApartmentItem, AreaTarget } from "@/types";
 import type {
   ApartmentPage,
+  AreaPage,
   ChartSeries,
   PageData,
   PageListing,
   PageTransaction,
+  RentListing,
+  RentSection,
   Summary,
   TimelineEvent,
   TimelineItem,
 } from "@/types/page";
 import { AREA_TOLERANCE } from "@/utils/constants";
-import { formatEok, formatFloor, parsePriceText } from "@/utils/format";
+import { formatEok, formatFloor, parseMonthlyRent, parsePriceText } from "@/utils/format";
 
 /** "신규" 배지와 요약 카운트에 포함할 최근 기간 */
 const RECENT_DAYS = 7;
@@ -22,9 +25,19 @@ const TIMELINE_DAYS = 14;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * 보증금을 월세로 환산할 때 쓰는 연이율.
+ *
+ * 월세 매물끼리 "보증금 1억/월 50"과 "보증금 3천/월 90"을 비교하려면 하나의 축이 필요하다.
+ * 시장에서 통용되는 전월세전환율(연 5~6%)의 하단을 쓴다. 정답이 있는 값은 아니므로
+ * 정렬과 대략적인 비교에만 쓰고, 개별 매물은 항상 원래 표기를 함께 보여준다.
+ */
+const DEPOSIT_TO_RENT_RATE = 0.05;
+
 interface ListingRow {
   article_id: string;
   naver_complex_id: string;
+  trade_type: string;
   price: string;
   area: number;
   floor: string;
@@ -49,9 +62,12 @@ interface TransactionRow {
 
 interface KbRow {
   apartment_name: string;
+  /** 마이그레이션 전에 쌓인 행에는 없다 (undefined) */
+  area?: number | null;
   deal_price_general: number | null;
   deal_price_lower: number | null;
   deal_price_upper: number | null;
+  jeonse_price_general?: number | null;
   base_date: string;
   fetched_at: string;
 }
@@ -77,6 +93,17 @@ function toListing(row: ListingRow, now: number): PageListing {
   };
 }
 
+function toRentListing(row: ListingRow, now: number): RentListing {
+  const base = toListing(row, now);
+  const monthlyRent = parseMonthlyRent(row.price);
+
+  return {
+    ...base,
+    monthlyRent,
+    monthlyCost: Math.round(monthlyRent + (base.price * DEPOSIT_TO_RENT_RATE) / 12),
+  };
+}
+
 function toTransaction(row: TransactionRow): PageTransaction {
   return {
     dealDate: row.deal_date,
@@ -86,20 +113,28 @@ function toTransaction(row: TransactionRow): PageTransaction {
   };
 }
 
+/** 오름차순 정렬된 값들의 중앙값. 비어 있으면 null. */
+function median(sorted: number[]): number | null {
+  return sorted.length > 0 ? sorted[Math.floor(sorted.length / 2)] : null;
+}
+
 interface AskSnapshotRow {
   snapshot_date: string;
   low: number;
   high: number;
 }
 
-/** ask_snapshots에 기록된 호가 범위 — 관측 당시 값 그대로라 정확하다 */
+/** ask_snapshots에 기록된 매매 호가 범위 — 관측 당시 값 그대로라 정확하다 */
 async function fetchRecordedAsk(
   apt: ApartmentItem,
+  area: number,
 ): Promise<{ low: Array<{ t: number; y: number }>; high: Array<{ t: number; y: number }> }> {
   const { data, error } = await supabase
     .from("ask_snapshots")
     .select("snapshot_date, low, high")
     .eq("naver_complex_id", apt.naverComplexId)
+    .gte("area", area - AREA_TOLERANCE)
+    .lte("area", area + AREA_TOLERANCE)
     .order("snapshot_date", { ascending: true });
 
   if (error) {
@@ -160,11 +195,12 @@ function buildAskFromListings(rows: ListingRow[]): {
 /** 기록된 스냅샷을 우선 쓰고, 그 이전 구간만 매물 기록으로 채운다 */
 async function fetchAskSeries(
   apt: ApartmentItem,
-  rows: ListingRow[],
+  area: number,
+  saleRows: ListingRow[],
 ): Promise<{ low: Array<{ t: number; y: number }>; high: Array<{ t: number; y: number }> }> {
-  const recorded = await fetchRecordedAsk(apt);
+  const recorded = await fetchRecordedAsk(apt, area);
   const cutoff = recorded.low[0]?.t ?? Number.POSITIVE_INFINITY;
-  const derived = buildAskFromListings(rows);
+  const derived = buildAskFromListings(saleRows);
 
   return {
     low: [...derived.low.filter((p) => p.t < cutoff), ...recorded.low],
@@ -200,6 +236,20 @@ function condense(points: Array<{ t: number; y: number }>): Array<{ t: number; y
   return condensed;
 }
 
+/**
+ * 이 면적에 해당하는 KB 행만 남긴다.
+ *
+ * area 칼럼이 생기기 전에 쌓인 행에는 면적이 없다. 그 시절엔 면적 하나만 수집했으므로
+ * 첫 번째 관심 면적의 이력으로 본다. 마이그레이션이 끝나면 전부 area를 갖게 되어
+ * 이 분기는 자연히 죽는다.
+ */
+function selectKbRowsForArea(rows: KbRow[], area: number, isPrimaryArea: boolean): KbRow[] {
+  return rows.filter((r) => {
+    if (r.area === undefined || r.area === null) return isPrimaryArea;
+    return Math.abs(Number(r.area) - area) <= AREA_TOLERANCE;
+  });
+}
+
 /** base_date별로 가장 최근에 수집한 KB 시세만 남긴다 (하루에 여러 번 수집되므로) */
 function dedupeKbByDate(rows: KbRow[]): KbRow[] {
   const byDate = new Map<string, KbRow>();
@@ -211,7 +261,7 @@ function dedupeKbByDate(rows: KbRow[]): KbRow[] {
 }
 
 function buildSummary(
-  apt: ApartmentItem,
+  target: AreaTarget,
   active: PageListing[],
   transactions: PageTransaction[],
   kbLatest: KbRow | undefined,
@@ -223,11 +273,11 @@ function buildSummary(
     .filter((p) => p > 0)
     .sort((a, b) => a - b);
   const lowestAsk = prices[0] ?? null;
-  const medianAsk = prices.length > 0 ? prices[Math.floor(prices.length / 2)] : null;
+  const medianAsk = median(prices);
   const lastDeal = transactions[0] ?? null;
 
   // 평가손익 기준은 가장 객관적인 최근 실거래가로 잡는다 (호가는 희망가라 부풀려진다).
-  const purchasePrice = apt.purchasePrice ?? null;
+  const purchasePrice = target.purchasePrice ?? null;
   const vsPurchase = purchasePrice !== null && lastDeal ? lastDeal.price - purchasePrice : null;
 
   return {
@@ -244,6 +294,60 @@ function buildSummary(
     purchasePrice,
     vsPurchase,
     vsPurchasePct: vsPurchase !== null && purchasePrice ? (vsPurchase / purchasePrice) * 100 : null,
+  };
+}
+
+/**
+ * 전월세 현황과 전세가율.
+ *
+ * 전세가율의 분모는 매매 호가 중앙값을 기본으로 쓴다. 전세 호가와 매매 호가는 같은 날
+ * 같은 성격(희망가)으로 관측한 값이라 그대로 비교할 수 있다. 실거래가를 분모로 쓰면
+ * 시점도 성격도 다른 값을 나누게 되므로, 참고용으로 따로 계산해 함께 보여준다.
+ */
+function buildRentSection(
+  jeonseRows: ListingRow[],
+  monthlyRows: ListingRow[],
+  saleMedian: number | null,
+  lastDealPrice: number | null,
+  kbLatest: KbRow | undefined,
+  now: number,
+): RentSection {
+  const jeonse = jeonseRows.map((r) => toRentListing(r, now)).sort((a, b) => a.price - b.price);
+  const monthly = monthlyRows
+    .map((r) => toRentListing(r, now))
+    .sort((a, b) => a.monthlyCost - b.monthlyCost);
+
+  const deposits = jeonse.map((l) => l.price).filter((p) => p > 0);
+  const listedMedian = median(deposits);
+
+  // 네이버 전세 매물이 0건인 면적이 흔하다. 그럴 때는 KB 전세 시세로 대신 낸다.
+  const kbJeonse = kbLatest?.jeonse_price_general ?? null;
+  const jeonseMedian = listedMedian ?? kbJeonse;
+  const jeonseSource: RentSection["jeonseSource"] =
+    listedMedian !== null ? "listing" : kbJeonse !== null ? "kb" : null;
+
+  const ratio = (basis: number | null) =>
+    jeonseMedian !== null && basis ? (jeonseMedian / basis) * 100 : null;
+
+  // KB 전세를 쓸 때는 분모도 KB 매매로 맞춘다 — 같은 기관의 같은 기준끼리 나눠야 한다.
+  const kbGeneral = kbLatest?.deal_price_general ?? null;
+  const askBasis = jeonseSource === "kb" ? kbGeneral : saleMedian;
+
+  // 갭은 실제로 사야 하는 값인 매매 호가를 우선 쓰고, 매물이 없을 때만 실거래로 떨어진다.
+  const gapBasis = saleMedian ?? lastDealPrice;
+
+  return {
+    jeonse,
+    monthly,
+    jeonseMedian,
+    jeonseSource,
+    jeonseLow: deposits[0] ?? null,
+    jeonseHigh: deposits.at(-1) ?? null,
+    ratioVsAsk: ratio(askBasis),
+    ratioVsDeal: ratio(lastDealPrice),
+    askBasis,
+    dealBasis: lastDealPrice,
+    gap: jeonseMedian !== null && gapBasis ? gapBasis - jeonseMedian : null,
   };
 }
 
@@ -269,6 +373,7 @@ function buildTimeline(
     const key = `${date}|${type}`;
     const bucket = buckets.get(key) ?? { date, type, items: [] };
     bucket.items.push({
+      articleId: row.article_id,
       price: parsePriceText(row.price),
       where: [row.building_name, formatFloor(row.floor)].filter(Boolean).join(" · "),
       note: [row.direction, row.realtor_name].filter(Boolean).join(" · "),
@@ -313,12 +418,95 @@ function buildTimeline(
         type: "deal",
         label: `${formatEok(t.price)} 실거래 체결`,
         detail: `${t.floor}층`,
-        items: [{ price: t.price, where: `${t.floor}층`, note: `전용 ${t.area}㎡` }],
+        items: [
+          {
+            articleId: `deal-${t.dealDate}-${t.price}-${t.floor}`,
+            price: t.price,
+            where: `${t.floor}층`,
+            note: `전용 ${t.area}㎡`,
+          },
+        ],
       });
     }
   }
 
   return events.sort((a, b) => b.date.localeCompare(a.date) || a.type.localeCompare(b.type));
+}
+
+/** 단지 전체에서 받아온 행을 면적 하나 분량으로 좁혀 페이지 데이터를 만든다 */
+function buildAreaPage(
+  target: AreaTarget,
+  allListingRows: ListingRow[],
+  allTxRows: TransactionRow[],
+  kbRows: KbRow[],
+  ask: { low: Array<{ t: number; y: number }>; high: Array<{ t: number; y: number }> },
+  now: number,
+): AreaPage {
+  const listingRows = allListingRows.filter(
+    (r) => Math.abs(Number(r.area) - target.area) <= AREA_TOLERANCE,
+  );
+  const saleRows = listingRows.filter((r) => r.trade_type === "매매");
+  const txRows = allTxRows.filter((r) => Math.abs(Number(r.area) - target.area) <= AREA_TOLERANCE);
+
+  // 같은 날 여러 건이 체결되면 날짜만으로는 어느 게 대표가 될지 정해지지 않는다.
+  // 높은 가격을 앞에 둬서 "그 날의 최고가"가 대표값이 되게 한다.
+  const transactions = txRows
+    .map(toTransaction)
+    .sort((a, b) => b.dealDate.localeCompare(a.dealDate) || b.price - a.price);
+
+  const activeSaleRows = saleRows.filter((r) => r.is_active);
+  const active = activeSaleRows.map((r) => toListing(r, now)).sort((a, b) => a.price - b.price);
+
+  const cutoff = now - RECENT_DAYS * DAY_MS;
+  const newCount = activeSaleRows.filter(
+    (r) => new Date(r.first_seen_at).getTime() >= cutoff,
+  ).length;
+  const removedCount = saleRows.filter(
+    (r) => !r.is_active && new Date(r.last_seen_at).getTime() >= cutoff,
+  ).length;
+
+  const kbPoint = (pick: (r: KbRow) => number | null) =>
+    condense(
+      kbRows
+        .filter((r) => pick(r) !== null)
+        .map((r) => ({ t: new Date(`${r.base_date}T00:00:00Z`).getTime(), y: pick(r) as number })),
+    );
+
+  const chart: ChartSeries = {
+    transactions: transactions.map((t) => ({
+      t: new Date(`${t.dealDate}T00:00:00Z`).getTime(),
+      y: t.price,
+      floor: t.floor,
+    })),
+    kbGeneral: kbPoint((r) => r.deal_price_general),
+    kbLower: kbPoint((r) => r.deal_price_lower),
+    kbUpper: kbPoint((r) => r.deal_price_upper),
+    askLow: condense(ask.low),
+    askHigh: condense(ask.high),
+  };
+
+  const summary = buildSummary(target, active, transactions, kbRows.at(-1), newCount, removedCount);
+
+  const activeOf = (tradeType: string) =>
+    listingRows.filter((r) => r.is_active && r.trade_type === tradeType);
+
+  return {
+    area: target.area,
+    summary,
+    chart,
+    listings: active,
+    rent: buildRentSection(
+      activeOf("전세"),
+      activeOf("월세"),
+      summary.medianAsk,
+      summary.lastDeal?.price ?? null,
+      kbRows.at(-1),
+      now,
+    ),
+    // 타임라인은 매매 매물 흐름만 본다 — 전월세까지 섞으면 무엇이 움직였는지 흐려진다.
+    timeline: buildTimeline(saleRows, transactions, now),
+    transactions,
+  };
 }
 
 async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<ApartmentPage> {
@@ -336,61 +524,26 @@ async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<Apar
       .order("fetched_at", { ascending: false }),
   ]);
 
-  const listingRows = ((listingRes.data ?? []) as ListingRow[]).filter(
-    (r) => Math.abs(Number(r.area) - apt.targetArea) <= AREA_TOLERANCE,
+  const allListingRows = (listingRes.data ?? []) as ListingRow[];
+  const allTxRows = (txRes.data ?? []) as TransactionRow[];
+  const allKbRows = (kbRes.data ?? []) as KbRow[];
+
+  const areas = await Promise.all(
+    apt.areas.map(async (target, index) => {
+      const saleRows = allListingRows.filter(
+        (r) => r.trade_type === "매매" && Math.abs(Number(r.area) - target.area) <= AREA_TOLERANCE,
+      );
+      const ask = await fetchAskSeries(apt, target.area, saleRows);
+      const kbRows = dedupeKbByDate(selectKbRowsForArea(allKbRows, target.area, index === 0));
+      return buildAreaPage(target, allListingRows, allTxRows, kbRows, ask, now);
+    }),
   );
-  const txRows = ((txRes.data ?? []) as TransactionRow[]).filter(
-    (r) => Math.abs(Number(r.area) - apt.targetArea) <= AREA_TOLERANCE,
-  );
-  const kbRows = dedupeKbByDate((kbRes.data ?? []) as KbRow[]);
-
-  // 같은 날 여러 건이 체결되면 날짜만으로는 어느 게 대표가 될지 정해지지 않는다.
-  // 높은 가격을 앞에 둬서 "그 날의 최고가"가 대표값이 되게 한다.
-  const transactions = txRows
-    .map(toTransaction)
-    .sort((a, b) => b.dealDate.localeCompare(a.dealDate) || b.price - a.price);
-  const activeRows = listingRows.filter((r) => r.is_active);
-  const active = activeRows.map((r) => toListing(r, now)).sort((a, b) => a.price - b.price);
-
-  const cutoff = now - RECENT_DAYS * DAY_MS;
-  const newCount = activeRows.filter((r) => new Date(r.first_seen_at).getTime() >= cutoff).length;
-  const removedCount = listingRows.filter(
-    (r) => !r.is_active && new Date(r.last_seen_at).getTime() >= cutoff,
-  ).length;
-
-  const kbPoint = (pick: (r: KbRow) => number | null) =>
-    condense(
-      kbRows
-        .filter((r) => pick(r) !== null)
-        .map((r) => ({ t: new Date(`${r.base_date}T00:00:00Z`).getTime(), y: pick(r) as number })),
-    );
-
-  const ask = await fetchAskSeries(apt, listingRows);
-
-  const chart: ChartSeries = {
-    transactions: transactions.map((t) => ({
-      t: new Date(`${t.dealDate}T00:00:00Z`).getTime(),
-      y: t.price,
-      floor: t.floor,
-    })),
-    kbGeneral: kbPoint((r) => r.deal_price_general),
-    kbLower: kbPoint((r) => r.deal_price_lower),
-    kbUpper: kbPoint((r) => r.deal_price_upper),
-    askLow: condense(ask.low),
-    askHigh: condense(ask.high),
-  };
 
   return {
     name: apt.name,
     address: apt.address,
-    targetArea: apt.targetArea,
-    tradeType: apt.tradeType,
     naverUrl: `https://new.land.naver.com/complexes/${apt.naverComplexId}`,
-    summary: buildSummary(apt, active, transactions, kbRows.at(-1), newCount, removedCount),
-    chart,
-    listings: active,
-    timeline: buildTimeline(listingRows, transactions, now),
-    transactions,
+    areas,
   };
 }
 

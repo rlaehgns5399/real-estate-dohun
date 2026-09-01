@@ -4,21 +4,16 @@
 
 import { type Browser, chromium } from "playwright";
 import type { ApartmentItem, Listing } from "@/types";
-
-/** 네이버 tradeType 코드 매핑 */
-const TRADE_TYPE_CODE: Record<string, string> = {
-  매매: "A1",
-  전세: "B1",
-  월세: "B2",
-};
-
 import { AREA_TOLERANCE } from "@/utils/constants";
 
 interface NaverArticle {
   articleNo: string;
   articleName: string;
   tradeTypeName: string;
+  /** 매매가 / 전세보증금 / 월세보증금 */
   dealOrWarrantPrc: string;
+  /** 월세액 (월세 매물만). "80" 형태 */
+  rentPrc?: string;
   area1: number; // 공급면적
   area2: number; // 전용면적
   floorInfo: string;
@@ -30,13 +25,26 @@ interface NaverArticle {
   priceChangeState?: string; // SAME, UP, DOWN
 }
 
+/**
+ * 네이버가 쓰는 표기로 가격 문자열을 만든다.
+ *
+ * 월세는 보증금과 월세액이 따로 오므로 "1,000/80"으로 합친다.
+ * 이미 슬래시가 들어 있으면 네이버가 합쳐 보낸 것이므로 그대로 둔다.
+ */
+function priceText(article: NaverArticle): string {
+  const deposit = String(article.dealOrWarrantPrc ?? "").trim();
+  const rent = String(article.rentPrc ?? "").trim();
+  if (!rent || deposit.includes("/")) return deposit;
+  return `${deposit}/${rent}`;
+}
+
 function parseArticle(article: NaverArticle, complexNo: string): Listing {
   return {
     articleId: article.articleNo,
     complexNo,
     articleName: article.articleName,
     tradeType: article.tradeTypeName,
-    price: article.dealOrWarrantPrc,
+    price: priceText(article),
     area: article.area2,
     supplyArea: article.area1,
     floor: article.floorInfo,
@@ -49,9 +57,14 @@ function parseArticle(article: NaverArticle, complexNo: string): Listing {
   };
 }
 
-/** Playwright로 네이버 부동산 페이지를 열고 API 응답을 가로채서 매물 수집 */
+/**
+ * Playwright로 네이버 부동산 페이지를 열고 API 응답을 가로채서 매물 수집.
+ *
+ * 거래 유형 필터(b=)를 걸지 않는다. 매매·전세·월세를 한 번에 받아서 코드에서 나누면
+ * 브라우저를 유형마다 새로 띄우지 않아도 되고, 자동화 탐지에 노출되는 횟수도 줄어든다.
+ * 반환값은 관심 면적으로만 걸러진 전 거래 유형 매물이다.
+ */
 export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
-  const tradeTypeCode = TRADE_TYPE_CODE[apt.tradeType] ?? "";
   const listings: Listing[] = [];
 
   let browser: Browser | null = null;
@@ -87,8 +100,8 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
       }
     });
 
-    // 네이버 부동산 단지 페이지 직접 방문 (매매 필터 적용)
-    const url = `https://new.land.naver.com/complexes/${apt.naverComplexId}?ms=37.5,127.0,17&a=APT:PRE&b=${tradeTypeCode}&e=RETAIL&ad=true`;
+    // 네이버 부동산 단지 페이지 직접 방문 (거래 유형 필터 없음)
+    const url = `https://new.land.naver.com/complexes/${apt.naverComplexId}?ms=37.5,127.0,17&a=APT:PRE&e=RETAIL&ad=true`;
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
     // API 응답이 올 때까지 대기
@@ -127,11 +140,21 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     if (browser) await browser.close();
   }
 
-  // 전용면적 필터
-  const filtered = listings.filter((l) => Math.abs(l.area - apt.targetArea) <= AREA_TOLERANCE);
+  // 같은 매물이 여러 API 응답에 중복으로 실려 온다.
+  const unique = [...new Map(listings.map((l) => [l.articleId, l])).values()];
+
+  // 관심 면적만 남긴다 — 안 보는 면적까지 DB에 쌓을 이유가 없다.
+  const filtered = unique.filter((l) =>
+    apt.areas.some((a) => Math.abs(l.area - a.area) <= AREA_TOLERANCE),
+  );
+
+  const byType = new Map<string, number>();
+  for (const l of filtered) byType.set(l.tradeType, (byType.get(l.tradeType) ?? 0) + 1);
+  const breakdown =
+    [...byType.entries()].map(([type, n]) => `${type} ${n}`).join(", ") || "해당 없음";
 
   console.log(
-    `[naver] 단지 ${apt.naverComplexId}: 전체 ${listings.length}건 중 ${apt.targetArea}㎡ ${apt.tradeType} ${filtered.length}건`,
+    `[naver] 단지 ${apt.naverComplexId}: 전체 ${unique.length}건 중 관심 면적 ${filtered.length}건 (${breakdown})`,
   );
   return filtered;
 }

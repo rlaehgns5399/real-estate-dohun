@@ -126,6 +126,10 @@ pnpm exec playwright install --with-deps chromium
 `src/db/schema.sql`을 SQL Editor에서 실행. 테이블은 `transactions`, `listings`, `kb_prices`,
 `ask_snapshots` 네 개다.
 
+이미 만들어 쓰던 DB라면 `src/db/migrations/`의 SQL을 순서대로 한 번씩 실행한다.
+`001-kb-prices-per-area.sql`은 `kb_prices`에 `area`와 `jeonse_price_general`을 추가한다 —
+이게 없으면 한 단지에서 면적을 하나밖에 수집하지 못하고, 수집기가 그 사실을 로그로 알린다.
+
 이어서 RLS를 켠다. 정책은 만들지 않는다 — 브라우저가 Supabase를 직접 호출하지 않으므로
 anon/publishable 키로 열려 있을 이유가 없고, 수집기는 secret key로 우회한다.
 
@@ -147,13 +151,29 @@ alter table public.ask_snapshots  enable row level security;
   kbComplexId: "311861",        // KB 단지기본일련번호 (없으면 null)
   address: "서울특별시 강동구 고덕로98길 160",
   regionCode: "11740",          // 법정동코드 5자리
-  targetArea: 49,               // 관심 전용면적 (㎡)
-  tradeType: "매매",
-  purchasePrice: 89000,         // 매입가 (만원, 선택)
+  areas: [
+    { area: 49, purchasePrice: 89000, collectKb: true },
+    { area: 59 },
+  ],
 }
 ```
 
+`areas`에 적은 전용면적마다 페이지 상단에 탭이 하나씩 생긴다. 첫 번째가 기본 탭이고,
+고른 면적은 `?area=59`로 주소에 남아 새로고침·링크 공유·뒤로가기가 모두 동작한다.
+경로(`/59`)를 쓰지 않는 이유는 `web/src/hooks/useAreaRoute.ts`에 적어 두었다.
+거래 유형은 지정하지 않는다 — 매매·전세·월세를 한 번에 수집해 매매는 시세 추이와 매물
+목록으로, 전세·월세는 전세가율과 전월세 목록으로 나눠 쓴다.
+
 `purchasePrice`를 빼면 기준선·평가손익·매입가 대비 컬럼이 자동으로 사라진다.
+
+KB는 주택형별로 시세를 나눠 놓는다. 예를 들어 59㎡는 59.94(A·198세대)와 59.78(B·7세대)
+두 행으로 오는데, 네이버가 두 타입을 모두 `59`로 뭉쳐 주기 때문에 매물을 어느 쪽에 배정할
+방법이 없다. 그래서 `areas`에는 `59` 하나만 적고, 수집기가 걸리는 주택형을 전부 합친다 —
+밴드는 하한의 최소~상한의 최대, 일반거래가는 세대수 가중평균.
+
+전세가율은 네이버 전세 매물의 중앙값을 우선 쓰고, 매물이 하나도 없으면 KB 전세 시세로
+대신 낸다. 분모도 그에 맞춰 매매 호가 중앙값 또는 KB 매매 일반가로 바뀌며, 화면에는 어떤
+값을 무엇으로 나눴는지 항상 함께 적는다.
 
 ### 5. GitHub Pages
 
@@ -166,7 +186,7 @@ alter table public.ask_snapshots  enable row level security;
 src/                     Node — 수집 파이프라인 (tsx로 실행)
 ├── collectors/          molit / kb / naver(Playwright)
 ├── services/            report, snapshot, page-data, publish, telegram, notify
-├── db/                  Supabase 클라이언트 + 스키마
+├── db/                  Supabase 클라이언트 + 스키마 + migrations/
 ├── config/env.ts        환경변수
 ├── constants/items.ts   관심 아파트
 ├── types/page.ts        페이지 payload 타입 ← web과 공유

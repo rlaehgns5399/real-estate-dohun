@@ -1,6 +1,7 @@
 import { fetchListings } from "@/collectors/naver";
 import { supabase } from "@/db/client";
 import type { ApartmentItem, Listing, ListingDiff } from "@/types";
+import { AREA_TOLERANCE } from "@/utils/constants";
 import { parsePriceText } from "@/utils/format";
 
 interface DbListingRow {
@@ -104,34 +105,44 @@ async function deactivateListings(ids: number[]): Promise<void> {
 }
 
 /**
- * 이 시점의 실제 호가 범위를 기록한다.
+ * 이 시점의 실제 매매 호가 범위를 면적별로 기록한다.
  *
  * listings는 가격이 바뀌면 행을 덮어쓰므로 과거 호가를 되살릴 수 없다.
  * 매 실행마다 관측한 값을 그대로 남겨야 차트가 추론 없이 과거를 그릴 수 있다.
+ *
+ * ask_snapshots에는 거래 유형 칼럼이 없어 매매만 남긴다. 전월세 매물은 listings에
+ * 그대로 쌓이므로 현재 시점의 전세가율은 거기서 계산한다.
  */
 async function recordAskSnapshot(apt: ApartmentItem, listings: Listing[]): Promise<void> {
-  const prices = listings
-    .map((l) => parsePriceText(l.price))
-    .filter((p) => p > 0)
-    .sort((a, b) => a - b);
+  const today = new Date().toISOString().slice(0, 10);
 
-  if (prices.length === 0) return;
+  for (const target of apt.areas) {
+    const prices = listings
+      .filter((l) => l.tradeType === "매매" && Math.abs(l.area - target.area) <= AREA_TOLERANCE)
+      .map((l) => parsePriceText(l.price))
+      .filter((p) => p > 0)
+      .sort((a, b) => a - b);
 
-  const { error } = await supabase.from("ask_snapshots").upsert(
-    {
-      naver_complex_id: apt.naverComplexId,
-      area: apt.targetArea,
-      snapshot_date: new Date().toISOString().slice(0, 10),
-      low: prices[0],
-      median: prices[Math.floor(prices.length / 2)],
-      high: prices[prices.length - 1],
-      listing_count: prices.length,
-    },
-    { onConflict: "naver_complex_id,area,snapshot_date" },
-  );
+    if (prices.length === 0) continue;
 
-  if (error) {
-    console.error(`[snapshot] 호가 범위 기록 실패 (ask_snapshots 테이블 확인): ${error.message}`);
+    const { error } = await supabase.from("ask_snapshots").upsert(
+      {
+        naver_complex_id: apt.naverComplexId,
+        area: target.area,
+        snapshot_date: today,
+        low: prices[0],
+        median: prices[Math.floor(prices.length / 2)],
+        high: prices[prices.length - 1],
+        listing_count: prices.length,
+      },
+      { onConflict: "naver_complex_id,area,snapshot_date" },
+    );
+
+    if (error) {
+      console.error(
+        `[snapshot] ${target.area}㎡ 호가 범위 기록 실패 (ask_snapshots 테이블 확인): ${error.message}`,
+      );
+    }
   }
 }
 

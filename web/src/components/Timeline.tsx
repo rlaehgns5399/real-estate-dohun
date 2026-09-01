@@ -1,4 +1,4 @@
-import type { ApartmentPage, TimelineEvent, TimelineItem } from "@shared/types/page";
+import type { AreaPage, TimelineEvent, TimelineItem } from "@shared/types/page";
 import { formatEok, formatMonthDay } from "@shared/utils/format";
 import { Card, Empty, SectionTitle, TitleNote } from "@/components/Card";
 import { Chevron } from "@/components/Chevron";
@@ -59,16 +59,20 @@ function Event({ event }: { event: TimelineEvent }) {
         <Chevron />
       </summary>
       <div className="pb-2 pl-19 pr-[0.9375rem] pt-0.5">
+        {/*
+          같은 날 같은 동·층·중개사로 값까지 똑같은 매물이 실제로 여러 건 올라온다.
+          그래서 키는 표시값이 아니라 네이버 매물 번호로 만든다.
+        */}
         {event.items.map((item) => (
-          <Line key={`${item.price}-${item.where}-${item.note}`} item={item} />
+          <Line key={item.articleId} item={item} />
         ))}
       </div>
     </details>
   );
 }
 
-export function Timeline({ apt }: { apt: ApartmentPage }) {
-  if (apt.timeline.length === 0) {
+export function Timeline({ area }: { area: AreaPage }) {
+  if (area.timeline.length === 0) {
     return (
       <section className="mb-6">
         <SectionTitle>최근 변동</SectionTitle>
@@ -85,7 +89,7 @@ export function Timeline({ apt }: { apt: ApartmentPage }) {
         최근 변동 <TitleNote>14일</TitleNote>
       </SectionTitle>
       <Card className="py-1.5">
-        {apt.timeline.map((event) => (
+        {area.timeline.map((event) => (
           <Event key={`${event.date}-${event.type}`} event={event} />
         ))}
       </Card>

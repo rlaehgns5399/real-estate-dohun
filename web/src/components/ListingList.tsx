@@ -1,4 +1,4 @@
-import type { ApartmentPage, PageListing } from "@shared/types/page";
+import type { AreaPage, PageListing } from "@shared/types/page";
 import { formatEok, formatYmd } from "@shared/utils/format";
 import { type ReactNode, useMemo, useState } from "react";
 import { Card, Empty, SectionTitle, TitleNote } from "@/components/Card";
@@ -16,11 +16,26 @@ const SORTS: Array<{ key: SortKey; label: string }> = [
   { key: "oldest", label: "오래된순" },
 ];
 
+/**
+ * 매물 정렬 기준.
+ *
+ * daysOnMarket은 우리가 이 면적을 관측하기 시작한 날부터 센다. 면적을 새로 추가한
+ * 첫날에는 전부 0이라 정렬이 아무 일도 하지 않고, 버튼이 고장 난 것처럼 보인다.
+ * 그래서 값이 같으면 네이버 확인일자로 한 번 더 가른다 — 관측 이력이 없어도
+ * 매물마다 값이 다르므로 첫날부터 의미 있는 순서가 나온다.
+ */
 function compare(key: SortKey) {
   return (a: PageListing, b: PageListing) => {
     if (key === "price") return a.price - b.price;
-    if (key === "recent") return a.daysOnMarket - b.daysOnMarket;
-    return b.daysOnMarket - a.daysOnMarket;
+
+    const byDays =
+      key === "recent" ? a.daysOnMarket - b.daysOnMarket : b.daysOnMarket - a.daysOnMarket;
+    if (byDays !== 0) return byDays;
+
+    // 확인일자는 "20260901" 형식이라 사전순 비교가 곧 날짜순이다.
+    return key === "recent"
+      ? b.confirmDate.localeCompare(a.confirmDate)
+      : a.confirmDate.localeCompare(b.confirmDate);
   };
 }
 
@@ -74,18 +89,18 @@ function Listing({ listing }: { listing: PageListing }) {
  * 페이지네이션 대신 점진적 노출을 쓴다.
  * 정렬을 바꿔도 페이지 상태가 꼬이지 않고 스크롤 흐름이 끊기지 않는다.
  */
-export function ListingList({ apt }: { apt: ApartmentPage }) {
+export function ListingList({ area }: { area: AreaPage }) {
   const [sort, setSort] = useState<SortKey>("price");
   const [limit, setLimit] = useState(PAGE_SIZE);
 
-  const sorted = useMemo(() => [...apt.listings].sort(compare(sort)), [apt.listings, sort]);
+  const sorted = useMemo(() => [...area.listings].sort(compare(sort)), [area.listings, sort]);
   const remaining = sorted.length - limit;
 
   return (
     <section className="mb-6">
       <div className="mb-[0.6875rem] flex flex-wrap items-baseline justify-between gap-2">
         <SectionTitle>
-          현재 매물 <TitleNote>{apt.summary.activeCount}건</TitleNote>
+          매매 매물 <TitleNote>{area.summary.activeCount}건</TitleNote>
         </SectionTitle>
         <div className="flex shrink-0 gap-1">
           {SORTS.map(({ key, label }) => (
@@ -104,7 +119,7 @@ export function ListingList({ apt }: { apt: ApartmentPage }) {
 
       <Card>
         {sorted.length === 0 ? (
-          <Empty>현재 등록된 매물이 없습니다.</Empty>
+          <Empty>현재 등록된 매매 매물이 없습니다.</Empty>
         ) : (
           sorted.slice(0, limit).map((l) => <Listing key={l.articleId} listing={l} />)
         )}

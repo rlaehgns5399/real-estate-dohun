@@ -1,4 +1,4 @@
-import type { ApartmentPage, PageTransaction } from "@shared/types/page";
+import type { AreaPage, PageTransaction } from "@shared/types/page";
 import { formatEok } from "@shared/utils/format";
 import { useMemo } from "react";
 import { Card, Empty, SectionTitle, TitleNote } from "@/components/Card";
@@ -103,8 +103,8 @@ function Month({
   );
 }
 
-export function TransactionTable({ apt }: { apt: ApartmentPage }) {
-  const groups = useMemo(() => groupByMonth(apt.transactions), [apt.transactions]);
+export function TransactionTable({ area }: { area: AreaPage }) {
+  const groups = useMemo(() => groupByMonth(area.transactions), [area.transactions]);
 
   if (groups.length === 0) {
     return (
@@ -122,7 +122,7 @@ export function TransactionTable({ apt }: { apt: ApartmentPage }) {
       <SectionTitle>
         실거래 내역{" "}
         <TitleNote>
-          {apt.transactions.length}건 · {groups.length}개월
+          {area.transactions.length}건 · {groups.length}개월
         </TitleNote>
       </SectionTitle>
       <Card>
@@ -130,7 +130,7 @@ export function TransactionTable({ apt }: { apt: ApartmentPage }) {
           <Month
             key={group.month}
             group={group}
-            purchase={apt.summary.purchasePrice}
+            purchase={area.summary.purchasePrice}
             open={i < OPEN_MONTHS}
           />
         ))}
