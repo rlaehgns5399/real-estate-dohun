@@ -1,5 +1,5 @@
 import type { ApartmentPage, AreaPage, PageData } from "@shared/types/page";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Card, SectionTitle } from "@/components/Card";
 import { Hero } from "@/components/Hero";
 import { ListingList } from "@/components/ListingList";
@@ -36,27 +36,6 @@ function ChartPlaceholder() {
   );
 }
 
-/**
- * 차트는 마운트 후에만 올린다.
- *
- * 프리렌더된 HTML에는 자리(ChartPlaceholder)만 들어간다. 차트는 캔버스를 직접 만지므로
- * 어차피 서버에서 그릴 수 없고, Suspense 경계를 서버 마크업에 남기면 hydrate 때 React가
- * "서버가 이 경계를 못 끝냈다"(#419)며 경계를 통째로 버리고 다시 그린다. 첫 클라이언트
- * 렌더를 서버와 똑같이 자리만 그리게 맞춰 그 왕복을 없앤다.
- */
-function ChartSlot({ area, theme }: { area: AreaPage; theme: ResolvedTheme }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return <ChartPlaceholder />;
-
-  return (
-    <Suspense fallback={<ChartPlaceholder />}>
-      <ChartCard area={area} theme={theme} />
-    </Suspense>
-  );
-}
-
 interface ApartmentProps {
   apt: ApartmentPage;
   area: AreaPage;
@@ -74,7 +53,9 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
       */}
       <div key={area.area} className="swap">
         <StatCards area={area} />
-        <ChartSlot area={area} theme={theme} />
+        <Suspense fallback={<ChartPlaceholder />}>
+          <ChartCard area={area} theme={theme} />
+        </Suspense>
         <ListingList area={area} />
         <RentCard area={area} />
         <Timeline area={area} />
@@ -84,9 +65,9 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
   );
 }
 
-export function App({ data, initialArea = null }: { data: PageData; initialArea?: number | null }) {
+export function App({ data }: { data: PageData }) {
   const { choice, resolved, cycle } = useTheme();
-  const [routeArea, selectArea] = useAreaRoute(initialArea);
+  const [routeArea, selectArea] = useAreaRoute();
 
   // 주소에 적힌 면적을 모든 단지에 똑같이 적용한다. 그 면적이 없는 단지는 첫 면적을 본다.
   const areaOf = (apt: ApartmentPage) =>
@@ -94,9 +75,6 @@ export function App({ data, initialArea = null }: { data: PageData; initialArea?
 
   const first = data.apartments[0];
   const firstArea = first ? areaOf(first) : undefined;
-
-  /** 기본 면적(첫 번째)은 루트 주소를 쓴다 */
-  const onSelectArea = (area: number) => selectArea(area, area === first?.areas[0]?.area);
 
   // 탭 제목은 지금 보고 있는 아파트·면적을 따른다 (index.html의 기본값을 덮어쓴다).
   useEffect(() => {
@@ -114,7 +92,7 @@ export function App({ data, initialArea = null }: { data: PageData; initialArea?
           generatedAt={data.generatedAt}
           choice={choice}
           onCycleTheme={cycle}
-          onSelectArea={onSelectArea}
+          onSelectArea={selectArea}
         />
       )}
       <main className="mx-auto max-w-[780px] px-[1.125rem] pb-20">

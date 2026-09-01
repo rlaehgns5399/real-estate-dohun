@@ -4,4 +4,3 @@ dist/
 .claude/
 .env
 .agents/
-dist-ssr/

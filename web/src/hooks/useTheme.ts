@@ -44,29 +44,16 @@ function applyTheme(choice: ThemeChoice): void {
  * 키 이름을 바꿀 때는 반드시 양쪽을 함께 고쳐야 한다.
  */
 export function useTheme() {
-  /*
-   * 초기값은 서버에서 그린 것과 똑같아야 한다.
-   *
-   * HTML을 빌드 시점에 미리 렌더하므로 첫 클라이언트 렌더는 그 마크업과 일치해야
-   * hydrate가 성립한다. localStorage도 matchMedia도 서버엔 없으니 양쪽 다 기본값으로
-   * 시작하고, 마운트된 뒤 effect에서 실제 값으로 바꾼다.
-   *
-   * 색이 번쩍이지는 않는다 — index.html의 인라인 스크립트가 첫 페인트 전에 data-theme을
-   * 이미 걸어두고, 팔레트는 전부 CSS 변수라 React 상태와 무관하게 적용된다. 이 상태는
-   * 토글 아이콘과 차트가 읽는 팔레트에만 쓰인다.
-   */
-  const [choice, setChoice] = useState<ThemeChoice>("system");
-  const [systemDark, setSystemDark] = useState(false);
+  const [choice, setChoice] = useState<ThemeChoice>(readStored);
+  const [systemDark, setSystemDark] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
 
   const choiceRef = useRef(choice);
   choiceRef.current = choice;
 
   useEffect(() => {
-    setChoice(readStored());
-
     const query = window.matchMedia("(prefers-color-scheme: dark)");
-    setSystemDark(query.matches);
-
     const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches);
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);

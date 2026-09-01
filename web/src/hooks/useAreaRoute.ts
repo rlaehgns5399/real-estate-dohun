@@ -1,59 +1,44 @@
 import { useCallback, useEffect, useState } from "react";
 
-const BASE = import.meta.env.BASE_URL;
+const PARAM = "area";
 
-/**
- * 경로에서 전용면적을 읽는다. 루트(BASE)면 null — 기본 면적을 뜻한다.
- *
- * 쿼리(?area=59)가 아니라 경로(/59/)를 쓰는 이유: 면적마다 HTML을 미리 그려 두므로
- * /59/에 실제 파일이 있다. 정적 호스팅에서 SPA 폴백이 필요했던 건 파일 없는 주소를
- * 클라이언트가 처리해야 할 때고, 지금은 그 전제가 사라졌다.
- *
- * 서버(빌드)와 클라이언트가 같은 함수로 같은 경로를 읽으므로 첫 렌더가 정확히 일치한다.
- * 쿼리로 하면 프리렌더된 HTML은 항상 기본 면적이라 /?area=59로 들어왔을 때 49가 잠깐
- * 보였다가 넘어간다.
- */
-export function areaFromPath(pathname: string): number | null {
-  const rest = pathname.startsWith(BASE)
-    ? pathname.slice(BASE.length)
-    : pathname.replace(/^\//, "");
-  const segment = rest.replace(/\/+$/, "").split("/").pop() ?? "";
-  if (!segment || segment === "index.html") return null;
-
-  const area = Number(segment);
+/** 주소의 ?area=59에서 전용면적을 읽는다. 없거나 숫자가 아니면 null(기본 면적). */
+function readParam(): number | null {
+  const raw = new URLSearchParams(window.location.search).get(PARAM)?.trim();
+  if (!raw) return null;
+  const area = Number(raw);
   return Number.isFinite(area) ? area : null;
-}
-
-/** 기본 면적은 루트에 둔다 — /49/ 대신 / 가 정규 주소다. */
-function pathFor(area: number, isDefault: boolean): string {
-  return isDefault ? BASE : `${BASE}${area}/`;
 }
 
 /**
  * 보고 있는 전용면적을 주소에 남긴다.
  *
- * initialArea는 서버가 그 페이지를 그릴 때 쓴 값과 같아야 한다. 양쪽 다
- * areaFromPath로 구하므로 어긋날 일이 없다.
+ * 경로(/59) 대신 쿼리스트링을 쓰는 이유: GitHub Pages에는 "모르는 경로는 index.html을
+ * 돌려준다"는 SPA 폴백 설정이 없다. /real-estate-dohun/59로 새로고침하면 서버가 그
+ * 경로의 파일을 찾다 404를 주고, JS가 아예 뜨지 않아 클라이언트 라우터가 실행될 기회조차
+ * 없다. 쿼리스트링은 파일 경로가 아니라서 서버는 /real-estate-dohun/을 그대로 200으로
+ * 내려주고, 라우팅은 온전히 브라우저에서 끝난다.
  */
-export function useAreaRoute(
-  initialArea: number | null,
-): [number | null, (area: number, isDefault: boolean) => void] {
-  const [area, setArea] = useState<number | null>(initialArea);
+export function useAreaRoute(): [number | null, (area: number) => void] {
+  const [area, setArea] = useState<number | null>(readParam);
 
   useEffect(() => {
     // 뒤로/앞으로가기는 popstate로 들어온다.
-    const onPopState = () => setArea(areaFromPath(window.location.pathname));
+    const onPopState = () => setArea(readParam());
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  const select = useCallback((next: number, isDefault: boolean) => {
-    const path = pathFor(next, isDefault);
-    if (window.location.pathname === path) return; // 히스토리를 헛되이 늘리지 않는다
+  const select = useCallback((next: number) => {
+    if (readParam() === next) return; // 같은 탭을 다시 눌러 히스토리를 늘리지 않는다
 
-    window.history.pushState(null, "", path);
-    // pushState는 popstate를 내지 않으므로 직접 갱신한다.
-    setArea(isDefault ? null : next);
+    const url = new URL(window.location.href);
+    url.searchParams.set(PARAM, String(next));
+    window.history.pushState(null, "", url);
+
+    // pushState는 popstate를 내지 않으므로 여기서 직접 갱신해야 한다.
+    // 해시와 달리 상태 갱신 경로가 둘(직접 선택 / 히스토리 이동)로 갈리는 건 History API의 구조다.
+    setArea(next);
   }, []);
 
   return [area, select];

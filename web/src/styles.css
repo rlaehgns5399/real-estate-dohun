@@ -204,22 +204,6 @@
     }
   }
 
-  /*
-   * 테마 아이콘은 data-theme으로 고른다.
-   *
-   * 인라인 스크립트가 첫 페인트 전에 이 속성을 걸어주므로, JS 번들이 도착하기 전에도
-   * 올바른 아이콘이 보인다. React 상태로 고르면 프리렌더된 마크업이 항상 "system"이라
-   * 저장된 값이 반영되는 순간 한 번 깜빡인다.
-   */
-  .theme-icon {
-    display: none;
-  }
-  :root:not([data-theme]) .theme-icon-system,
-  :root[data-theme="light"] .theme-icon-light,
-  :root[data-theme="dark"] .theme-icon-dark {
-    display: block;
-  }
-
   /* 상단바 아래 경계는 선이 아니라 그라데이션 마스크로 흐린다 */
   .topbar-fade::after {
     content: "";
