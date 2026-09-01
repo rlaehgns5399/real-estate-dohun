@@ -45,7 +45,8 @@ export function Hero({ apt, area }: Props) {
         </a>
       </p>
 
-      <div className="reveal reveal-2 mt-7">
+      {/* 페이지에서 가장 큰 글자다. 여기가 안 갈리면 면적을 바꿔도 안 바뀐 것처럼 보인다. */}
+      <div key={area.area} className="swap mt-7">
         <div className="text-xs font-semibold uppercase tracking-[0.045em] text-muted">
           {area.area}㎡ 최근 실거래가
         </div>

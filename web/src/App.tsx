@@ -25,8 +25,9 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
       {/*
         면적을 바꾸면 key가 바뀌어 아래 섹션들이 새로 마운트된다.
         정렬·펼침·차트 줌 같은 내부 상태가 이전 면적 것을 물고 넘어오지 않는다.
+        새로 마운트되는 김에 .swap으로 한 덩어리처럼 갈아 끼운다.
       */}
-      <div key={area.area}>
+      <div key={area.area} className="swap">
         <StatCards area={area} />
         <ChartCard area={area} theme={theme} />
         <ListingList area={area} />
