@@ -1,6 +1,6 @@
 import type { ApartmentPage, AreaPage, PageData } from "@shared/types/page";
-import { useEffect } from "react";
-import { ChartCard } from "@/components/ChartCard";
+import { lazy, Suspense, useEffect } from "react";
+import { Card, SectionTitle } from "@/components/Card";
 import { Hero } from "@/components/Hero";
 import { ListingList } from "@/components/ListingList";
 import { RentCard } from "@/components/RentCard";
@@ -11,6 +11,30 @@ import { TransactionTable } from "@/components/TransactionTable";
 import { useAreaRoute } from "@/hooks/useAreaRoute";
 import type { ResolvedTheme } from "@/hooks/useTheme";
 import { useTheme } from "@/hooks/useTheme";
+
+/**
+ * 차트만 따로 받아온다.
+ *
+ * chart.js와 zoom 플러그인이 JS 번들의 절반(gzip 69KB)인데, 정작 스크롤해야 보인다.
+ * 같이 묶여 있으면 첫 화면에 필요 없는 걸 다 받고 실행할 때까지 아무것도 그려지지 않는다.
+ * #root가 비어 있는 구조라 그 대기 시간이 그대로 빈 화면으로 드러난다.
+ */
+const ChartCard = lazy(() =>
+  import("@/components/ChartCard").then((m) => ({ default: m.ChartCard })),
+);
+
+/** 차트가 도착하기 전 자리. 높이를 같게 잡아 레이아웃이 밀리지 않게 한다. */
+function ChartPlaceholder() {
+  return (
+    <section className="mb-6">
+      <SectionTitle>시세 추이</SectionTitle>
+      <Card large className="px-4 pb-[0.9375rem] pt-[1.125rem]">
+        <div className="mb-3.5 h-[26px]" />
+        <div className="h-[306px] sm:h-[348px]" />
+      </Card>
+    </section>
+  );
+}
 
 interface ApartmentProps {
   apt: ApartmentPage;
@@ -29,7 +53,9 @@ function Apartment({ apt, area, theme }: ApartmentProps) {
       */}
       <div key={area.area} className="swap">
         <StatCards area={area} />
-        <ChartCard area={area} theme={theme} />
+        <Suspense fallback={<ChartPlaceholder />}>
+          <ChartCard area={area} theme={theme} />
+        </Suspense>
         <ListingList area={area} />
         <RentCard area={area} />
         <Timeline area={area} />
