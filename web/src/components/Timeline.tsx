@@ -54,7 +54,7 @@ function Event({ event }: { event: TimelineEvent }) {
 
   return (
     <details className="group">
-      <summary className={`${ROW} hover:bg-text/4`}>
+      <summary className={`${ROW} transition-colors duration-150 hover:bg-text/4`}>
         <Head event={event} />
         <Chevron />
       </summary>

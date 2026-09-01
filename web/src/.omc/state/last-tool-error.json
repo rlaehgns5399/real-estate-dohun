@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"sed -n '25,55p' web/src/components/ThemeToggle.tsx; echo \\\"=== ChartCard 칩/초기화 ===\\\"; sed -n '398,420p' web/src/components/ChartCard.tsx | cut -c1-400; echo \\\"=== StatCards reveal ===\\\"; g...",
+  "error": "Exit code 2\nsed: web/src/components/ThemeToggle.tsx: No such file or directory\n=== ChartCard 칩/초기화 ===\nsed: web/src/components/ChartCard.tsx: No such file or directory\n=== StatCards reveal ===\nugrep: warning: web/src/components/StatCards.tsx: No such file or directory\nugrep: warning: web/src/components/Hero.tsx: No such file or directory",
+  "timestamp": "2026-09-01T09:52:10.284Z",
+  "retry_count": 2
+}

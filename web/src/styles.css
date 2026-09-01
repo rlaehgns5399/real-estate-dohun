@@ -51,6 +51,21 @@
  */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/*
+ * hover를 진짜 포인터가 있는 기기로 제한한다.
+ *
+ * Tailwind는 hover:를 그냥 :hover로 낸다. 터치 기기는 탭할 때 hover를 한 번 발생시키고
+ * 그 상태가 다음 탭까지 눌어붙는다. 이 페이지는 모바일에서 주로 보므로, 눌렀다 뗀 카드가
+ * 계속 밝게 남는 게 그대로 드러난다. 변형 하나를 덮어 전체 hover: 유틸리티에 적용한다.
+ */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 :root {
   color-scheme: light dark;
 }

@@ -285,7 +285,8 @@ export function ChartCard({ area, theme }: Props) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: reduceMotion ? false : { duration: 600, easing: "easeOutQuart" },
+        // 면적 탭을 바꿀 때마다 다시 그려지므로 길면 조작이 굼떠 보인다.
+        animation: reduceMotion ? false : { duration: 400, easing: "easeOutQuart" },
         interaction: { mode: "nearest", intersect: false },
         layout: { padding: { top: 4, right: 4 } },
         scales: {
@@ -402,7 +403,7 @@ export function ChartCard({ area, theme }: Props) {
                 type="button"
                 aria-pressed={!hidden.has(series.key)}
                 onClick={() => toggle(series.key)}
-                className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-[0.5625rem] py-1 text-[0.6875rem] tracking-[0.015em] transition-[transform,opacity,border-color,background-color] duration-150 ease-out-strong hover:border-faint active:scale-[0.94] aria-[pressed=false]:bg-transparent aria-[pressed=false]:text-muted aria-[pressed=false]:opacity-45 motion-reduce:transition-colors motion-reduce:active:scale-100"
+                className="inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-[0.5625rem] py-1 text-[0.6875rem] tracking-[0.015em] transition-[transform,opacity,border-color,background-color] duration-150 ease-out-strong hover:border-faint active:scale-[0.96] aria-[pressed=false]:bg-transparent aria-[pressed=false]:text-muted aria-[pressed=false]:opacity-45 motion-reduce:transition-colors motion-reduce:active:scale-100"
               >
                 <Swatch series={series} />
                 {series.label}

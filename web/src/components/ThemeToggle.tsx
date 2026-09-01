@@ -35,7 +35,7 @@ export function ThemeToggle({ choice, onCycle }: Props) {
       onClick={onCycle}
       aria-label={`테마: ${LABELS[choice]} (눌러서 전환)`}
       title={`테마: ${LABELS[choice]}`}
-      className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted transition-[transform,color,border-color] duration-150 ease-out-strong hover:border-faint hover:text-text active:scale-90 motion-reduce:transition-colors motion-reduce:active:scale-100"
+      className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted transition-[transform,color,border-color] duration-150 ease-out-strong hover:border-faint hover:text-text active:scale-95 motion-reduce:transition-colors motion-reduce:active:scale-100"
     >
       <svg
         className="size-[15px]"

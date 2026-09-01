@@ -27,6 +27,13 @@ function Stat({
   );
 }
 
+/**
+ * 요약 지표 카드.
+ *
+ * reveal(등장 애니메이션)을 걸지 않는다. 이 섹션은 면적을 바꿀 때마다 다시 마운트되므로,
+ * 등장 연출을 두면 탭을 누를 때마다 420ms짜리 연출이 반복된다. 첫 진입 연출은 다시
+ * 마운트되지 않는 Hero가 맡는다.
+ */
 export function StatCards({ area }: { area: AreaPage }) {
   const s = area.summary;
   const { rent } = area;
@@ -49,7 +56,7 @@ export function StatCards({ area }: { area: AreaPage }) {
       .join(" · ") || "최근 7일 변동 없음";
 
   return (
-    <section className="reveal reveal-3 mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+    <section className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
       <Stat
         label="최저 호가"
         value={s.lowestAsk !== null ? formatEok(s.lowestAsk) : "—"}

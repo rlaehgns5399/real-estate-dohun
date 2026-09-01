@@ -45,7 +45,7 @@ function Month({
 
   return (
     <details className="group border-b border-border last:border-b-0" open={open}>
-      <summary className="flex items-center gap-3 px-[0.9375rem] py-[0.6875rem] hover:bg-text/4">
+      <summary className="flex items-center gap-3 px-[0.9375rem] py-[0.6875rem] transition-colors duration-150 hover:bg-text/4">
         <span className="text-[0.8125rem] font-[650] tracking-[-0.01em] tabular-nums">
           {year}.{month}
         </span>
