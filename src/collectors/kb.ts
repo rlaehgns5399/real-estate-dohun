@@ -3,6 +3,7 @@ import { supabase } from "@/db/client";
 import type { ApartmentItem, KbPrice } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
 import { delay } from "@/utils/delay";
+import { formatMan } from "@/utils/format";
 
 const HEADERS = {
   "User-Agent":
@@ -83,18 +84,23 @@ export async function fetchKbPrice(
       return null;
     }
 
-    if (matches.length > 1) {
-      const detail = matches
-        .map((m) => `${m.전용면적}㎡(${m.주택형타입내용}·${m.세대수}세대)`)
-        .join(" + ");
-      console.log(`[kb] ${apt.name} ${targetArea}㎡: 주택형 ${matches.length}개 병합 — ${detail}`);
-    }
+    // 면적별로 항상 한 줄 남긴다. 병합될 때만 찍으면 병합이 없는 면적은
+    // 조사에서 빠진 것처럼 보인다.
+    const merged = mergeAreas(matches);
+    const detail = matches
+      .map((m) => `${m.전용면적}㎡(${m.주택형타입내용}·${m.세대수}세대)`)
+      .join(" + ");
+    const typeInfo = matches.length > 1 ? `주택형 ${matches.length}개 병합: ${detail}` : detail;
+    console.log(
+      `[kb] ${apt.name} ${targetArea}㎡: 매매 ${formatMan(merged.dealPriceGeneral)} · ` +
+        `전세 ${formatMan(merged.jeonseGeneral)} — ${typeInfo}`,
+    );
 
     return {
       complexNo: apt.kbComplexId,
       area: targetArea,
       baseDate: new Date().toISOString().slice(0, 10),
-      ...mergeAreas(matches),
+      ...merged,
     };
   } catch (err) {
     console.warn(`[kb] 시세 조회 실패 (${apt.name} ${targetArea}㎡):`, err);
