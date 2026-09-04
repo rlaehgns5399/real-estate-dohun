@@ -6,6 +6,17 @@ import { type Browser, chromium } from "playwright";
 import type { ApartmentItem, Listing } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
 
+/**
+ * 매물 목록 API 응답.
+ *
+ * isMoreData가 페이지네이션의 끝을 알려준다. 마지막 페이지만 false를 주므로,
+ * false를 한 번도 못 받았다면 목록을 끝까지 훑지 못한 것이다.
+ */
+interface NaverArticleResponse {
+  articleList?: NaverArticle[];
+  isMoreData?: boolean;
+}
+
 interface NaverArticle {
   articleNo: string;
   articleName: string;
@@ -76,6 +87,17 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
    */
   let gotArticleResponse = false;
 
+  /**
+   * 마지막 페이지까지 훑었는지.
+   *
+   * 부분 수집이 0건보다 위험하다. 34건 중 20건만 받으면 나머지 14건이 조용히
+   * "내려감"으로 처리되는데, 건수만 봐서는 정상과 구분되지 않는다. 비율로 어림잡는
+   * 대신 네이버가 주는 isMoreData를 쓴다 — 마지막 페이지가 false를 주므로 그걸
+   * 받았는지가 완결성의 정확한 증거다. 스크롤 셀렉터가 바뀌어 다음 페이지를 못
+   * 부르면 첫 페이지의 true만 남아 여기서 걸린다.
+   */
+  let reachedLastPage = false;
+
   let browser: Browser | null = null;
   try {
     browser = await chromium.launch({
@@ -102,9 +124,11 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
         // 본문 파싱 실패와 무관하게, 응답이 왔다는 사실 자체가 페이지가 열렸다는 증거다.
         gotArticleResponse = true;
         try {
-          const json = await response.json();
-          const articles: NaverArticle[] = json?.articleList ?? [];
-          listings.push(...articles.map((a) => parseArticle(a, apt.naverComplexId)));
+          const json = (await response.json()) as NaverArticleResponse;
+          listings.push(
+            ...(json.articleList ?? []).map((a) => parseArticle(a, apt.naverComplexId)),
+          );
+          if (json.isMoreData === false) reachedLastPage = true;
         } catch {
           // JSON 파싱 실패 무시
         }
@@ -120,7 +144,7 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
 
     // 매물 목록 스크롤 컨테이너에서 반복 스크롤로 전체 로드
     let prevCount = 0;
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 30 && !reachedLastPage; i++) {
       try {
         // 더보기 버튼 클릭 시도
         const moreButton = page.locator("a.more_btn, button.more_btn").first();
@@ -140,11 +164,14 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
         break;
       }
 
-      // 매물 수 변화 없으면 종료
+      // 마지막 페이지 신호가 안 오는데 건수도 안 늘면 더 기다릴 이유가 없다.
+      // 여기서 빠져나가도 아래 완결성 검사가 미완이라고 잡아준다.
       if (listings.length === prevCount) break;
       prevCount = listings.length;
     }
-    console.log(`[naver] 스크롤 완료: 총 ${listings.length}건 수집`);
+    console.log(
+      `[naver] 스크롤 완료: 총 ${listings.length}건 수집 (마지막 페이지 도달: ${reachedLastPage})`,
+    );
   } catch (err) {
     // 여기서 삼키면 빈 배열이 "매물 전부 내려감"으로 둔갑해 DB의 활성 매물이 통째로 꺼진다.
     throw new Error(`[naver] 단지 ${apt.naverComplexId} 수집 실패`, { cause: err });
@@ -156,6 +183,14 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     throw new Error(
       `[naver] 단지 ${apt.naverComplexId}: 매물 API 응답을 한 번도 받지 못했습니다. ` +
         "차단됐거나 페이지 구조가 바뀌었을 수 있습니다.",
+    );
+  }
+
+  if (!reachedLastPage) {
+    throw new Error(
+      `[naver] 단지 ${apt.naverComplexId}: 매물 목록을 끝까지 못 읽었습니다 ` +
+        `(${listings.length}건까지 받고 isMoreData=false를 못 봄). ` +
+        "스크롤 셀렉터(.item_list--article)가 바뀌었을 수 있습니다.",
     );
   }
 
