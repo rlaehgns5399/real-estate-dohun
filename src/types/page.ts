@@ -76,6 +76,7 @@ export interface PageListing {
   firstSeenAt: string;
   /** 매물이 올라와 있는 일수 */
   daysOnMarket: number;
+  /** 확인일이 오늘이거나 어제인 매물 */
   isNew: boolean;
 }
 

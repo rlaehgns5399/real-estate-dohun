@@ -17,8 +17,18 @@ import type {
 import { AREA_TOLERANCE } from "@/utils/constants";
 import { formatEok, formatFloor, parseMonthlyRent, parsePriceText } from "@/utils/format";
 
-/** "신규" 배지와 요약 카운트에 포함할 최근 기간 */
+/** 요약 카드의 "신규 / 내려감"에 포함할 최근 기간 */
 const RECENT_DAYS = 7;
+
+/**
+ * "신규" 배지를 붙일 기준 (일). 확인일이 오늘이거나 어제면 신규로 본다.
+ *
+ * first_seen_at(우리가 처음 관측한 시각)은 쓰지 않는다. 수집이 한 번이라도 비면
+ * 활성 매물이 통째로 내려간 것으로 처리됐다가 다음 실행에서 전부 신규로 다시
+ * 들어오면서 리셋되기 때문이다. 매물이 스스로 들고 있는 확인일을 쓰면 우리
+ * 수집 이력과 무관하게 항상 같은 값이 나온다.
+ */
+const NEW_CONFIRM_DAYS = 1;
 
 /** 타임라인에 표시할 기간 */
 const TIMELINE_DAYS = 14;
@@ -76,6 +86,22 @@ function daysBetween(from: string, to: number): number {
   return Math.max(0, Math.floor((to - new Date(from).getTime()) / DAY_MS));
 }
 
+/**
+ * 네이버 확인일("20260904")이 며칠 전인지. 형식이 어긋나면 null.
+ *
+ * 확인일은 한국 날짜라 오늘도 한국 날짜로 잡아야 한다. 빌드는 UTC에서 돌기 때문에
+ * 그냥 비교하면 한국 시간 오전 9시 전까지 하루씩 밀린다.
+ */
+function daysSinceConfirm(confirmDate: string, now: number): number | null {
+  const ymd = /^(\d{4})(\d{2})(\d{2})$/.exec(confirmDate ?? "");
+  if (!ymd) return null;
+
+  const today = new Date(now).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+  const confirmed = Date.parse(`${ymd[1]}-${ymd[2]}-${ymd[3]}T00:00:00Z`);
+
+  return Math.round((Date.parse(`${today}T00:00:00Z`) - confirmed) / DAY_MS);
+}
+
 function toListing(row: ListingRow, now: number): PageListing {
   return {
     articleId: row.article_id,
@@ -89,7 +115,8 @@ function toListing(row: ListingRow, now: number): PageListing {
     confirmDate: row.confirm_date ?? "",
     firstSeenAt: row.first_seen_at,
     daysOnMarket: daysBetween(row.first_seen_at, now),
-    isNew: now - new Date(row.first_seen_at).getTime() <= RECENT_DAYS * DAY_MS,
+    isNew:
+      (daysSinceConfirm(row.confirm_date, now) ?? Number.POSITIVE_INFINITY) <= NEW_CONFIRM_DAYS,
   };
 }
 
