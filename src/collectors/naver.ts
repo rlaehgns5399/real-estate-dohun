@@ -67,6 +67,15 @@ function parseArticle(article: NaverArticle, complexNo: string): Listing {
 export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
   const listings: Listing[] = [];
 
+  /**
+   * 매물 API 응답을 한 번이라도 받았는지.
+   *
+   * "수집이 막혀서 0건"과 "단지에 매물이 정말 0건"을 가르는 유일한 신호다. 매물이
+   * 없어도 이 응답 자체는 오므로, 한 번도 못 받았다면 페이지를 제대로 열지 못한 것이다.
+   * 이걸 구분하지 않고 빈 배열을 돌려주면 호출부가 "매물이 전부 내려갔다"로 읽는다.
+   */
+  let gotArticleResponse = false;
+
   let browser: Browser | null = null;
   try {
     browser = await chromium.launch({
@@ -90,6 +99,8 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     page.on("response", async (response) => {
       const url = response.url();
       if (url.includes("/api/articles/complex/") && response.status() === 200) {
+        // 본문 파싱 실패와 무관하게, 응답이 왔다는 사실 자체가 페이지가 열렸다는 증거다.
+        gotArticleResponse = true;
         try {
           const json = await response.json();
           const articles: NaverArticle[] = json?.articleList ?? [];
@@ -135,9 +146,17 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     }
     console.log(`[naver] 스크롤 완료: 총 ${listings.length}건 수집`);
   } catch (err) {
-    console.error("[naver] Playwright 수집 실패:", err);
+    // 여기서 삼키면 빈 배열이 "매물 전부 내려감"으로 둔갑해 DB의 활성 매물이 통째로 꺼진다.
+    throw new Error(`[naver] 단지 ${apt.naverComplexId} 수집 실패`, { cause: err });
   } finally {
     if (browser) await browser.close();
+  }
+
+  if (!gotArticleResponse) {
+    throw new Error(
+      `[naver] 단지 ${apt.naverComplexId}: 매물 API 응답을 한 번도 받지 못했습니다. ` +
+        "차단됐거나 페이지 구조가 바뀌었을 수 있습니다.",
+    );
   }
 
   // 같은 매물이 여러 API 응답에 중복으로 실려 온다.

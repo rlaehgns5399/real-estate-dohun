@@ -5,14 +5,6 @@ import { updateListingsSnapshot } from "@/services/snapshot";
 import type { ApartmentItem, AreaTarget, KbPrice, ListingDiff, Transaction } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
 
-const EMPTY_DIFF: ListingDiff = {
-  allListings: [],
-  newListings: [],
-  removedListings: [],
-  priceChangedListings: [],
-  totalActive: 0,
-};
-
 /** 아파트 한 곳 · 면적 하나의 수집 결과 */
 export interface CollectedArea {
   apt: ApartmentItem;
@@ -42,8 +34,12 @@ function narrowToArea(diff: ListingDiff, area: number): ListingDiff {
 /**
  * 외부 소스에서 수집해 Supabase에 저장하고 결과를 반환한다.
  *
- * 한 소스가 실패해도 나머지는 계속 진행한다 — 네이버 스크래핑이 막혀도
- * 실거래가/KB 시세는 갱신되는 편이 낫다.
+ * 실거래가·KB 시세는 실패해도 넘어간다. 둘 다 있는 값에 덧쌓기만 하므로 한 번 걸러도
+ * 다음 실행에서 따라잡는다.
+ *
+ * 네이버 매물은 다르다. 실패를 삼키면 "매물이 전부 내려갔다"로 읽혀 활성 매물이 통째로
+ * 꺼지고 이력이 날아간다. 그래서 위로 던져 실행 자체를 멈춘다. 페이지는 직전 데이터를
+ * 그대로 들고 있는 편이, 매물이 사라진 화면을 새로 배포하는 것보다 낫다.
  */
 export async function runCollection(): Promise<CollectedArea[]> {
   console.log("=== 수집 시작 ===", new Date().toISOString());
@@ -70,12 +66,7 @@ export async function runCollection(): Promise<CollectedArea[]> {
   const results: CollectedArea[] = [];
 
   for (const apt of APARTMENT_ITEMS) {
-    let diff = EMPTY_DIFF;
-    try {
-      diff = await updateListingsSnapshot(apt);
-    } catch (err) {
-      console.error(`[${apt.name}] 네이버 매물 수집 실패:`, err);
-    }
+    const diff = await updateListingsSnapshot(apt);
 
     for (const target of apt.areas) {
       results.push({
