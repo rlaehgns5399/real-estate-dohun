@@ -34,12 +34,13 @@ function narrowToArea(diff: ListingDiff, area: number): ListingDiff {
 /**
  * 외부 소스에서 수집해 Supabase에 저장하고 결과를 반환한다.
  *
- * 실거래가·KB 시세는 실패해도 넘어간다. 둘 다 있는 값에 덧쌓기만 하므로 한 번 걸러도
- * 다음 실행에서 따라잡는다.
+ * 한 소스라도 실패하면 던져서 실행 전체를 멈춘다. 페이지 상단에 갱신 시각이 찍히기
+ * 때문에, 일부만 성공한 채로 발행하면 "방금 갱신"이라고 써 놓고 실거래가는 어제 것을
+ * 보여주게 된다. 직전 데이터를 그대로 두는 편이 정직하다.
  *
- * 네이버 매물은 다르다. 실패를 삼키면 "매물이 전부 내려갔다"로 읽혀 활성 매물이 통째로
- * 꺼지고 이력이 날아간다. 그래서 위로 던져 실행 자체를 멈춘다. 페이지는 직전 데이터를
- * 그대로 들고 있는 편이, 매물이 사라진 화면을 새로 배포하는 것보다 낫다.
+ * 실패와 "정상적인 빈 결과"는 다르다. 거래가 없는 달, KB가 시세를 안 주는 면적,
+ * 매물이 없는 단지는 전부 정상이고 각 수집기가 빈 값으로 돌려준다. 여기서 멈추는 건
+ * 수집기가 던진 경우, 즉 조회 자체가 실패한 경우뿐이다.
  */
 export async function runCollection(): Promise<CollectedArea[]> {
   console.log("=== 수집 시작 ===", new Date().toISOString());
@@ -49,19 +50,8 @@ export async function runCollection(): Promise<CollectedArea[]> {
     return [];
   }
 
-  let allTransactions: Transaction[] = [];
-  try {
-    allTransactions = await collectTransactions();
-  } catch (err) {
-    console.error("[molit] 실거래가 수집 실패:", err);
-  }
-
-  let kbPrices: KbPrice[] = [];
-  try {
-    kbPrices = await collectKbPrices(APARTMENT_ITEMS);
-  } catch (err) {
-    console.error("[kb] 시세 수집 실패:", err);
-  }
+  const allTransactions = await collectTransactions();
+  const kbPrices = await collectKbPrices(APARTMENT_ITEMS);
 
   const results: CollectedArea[] = [];
 

@@ -54,58 +54,59 @@ function mergeAreas(matches: KbAreaData[]): Omit<KbPrice, "complexNo" | "area" |
   };
 }
 
-/** KB부동산 시세 조회 — 관심 면적에 걸리는 주택형을 모두 합쳐서 돌려준다 */
+/**
+ * KB부동산 시세 조회 — 관심 면적에 걸리는 주택형을 모두 합쳐서 돌려준다.
+ *
+ * null은 "KB가 이 면적 시세를 제공하지 않는다"는 뜻이고, 그건 정상이다. 조회 자체가
+ * 실패하면 던진다. 예전에는 둘을 모두 null로 뭉개서, KB가 응답 형식을 바꿔도 매일
+ * 조용히 "시세 없음"으로 넘어가고 아무도 모르는 상태가 될 수 있었다.
+ */
 export async function fetchKbPrice(
   apt: ApartmentItem,
   targetArea: number,
 ): Promise<KbPrice | null> {
   if (!apt.kbComplexId) return null;
 
-  try {
-    const { data } = await axios.get("https://api.kbland.kr/land-complex/complex/mpriByType", {
-      headers: HEADERS,
-      params: {
-        단지기본일련번호: apt.kbComplexId,
-      },
-    });
+  const { data } = await axios.get("https://api.kbland.kr/land-complex/complex/mpriByType", {
+    headers: HEADERS,
+    params: {
+      단지기본일련번호: apt.kbComplexId,
+    },
+  });
 
-    const items: KbAreaData[] = data?.dataBody?.data ?? [];
+  const items: KbAreaData[] = data?.dataBody?.data ?? [];
 
-    // 시세를 제공하지 않는 주택형은 0으로 내려와 평균을 끌어내린다.
-    const matches = items.filter(
-      (item) =>
-        Math.abs(parseFloat(item.전용면적) - targetArea) <= AREA_TOLERANCE &&
-        item.시세제공여부 === "1" &&
-        item.매매일반거래가 > 0,
-    );
+  // 시세를 제공하지 않는 주택형은 0으로 내려와 평균을 끌어내린다.
+  const matches = items.filter(
+    (item) =>
+      Math.abs(parseFloat(item.전용면적) - targetArea) <= AREA_TOLERANCE &&
+      item.시세제공여부 === "1" &&
+      item.매매일반거래가 > 0,
+  );
 
-    if (matches.length === 0) {
-      console.warn(`[kb] ${apt.name}: 전용 ${targetArea}㎡ 시세 없음`);
-      return null;
-    }
-
-    // 면적별로 항상 한 줄 남긴다. 병합될 때만 찍으면 병합이 없는 면적은
-    // 조사에서 빠진 것처럼 보인다.
-    const merged = mergeAreas(matches);
-    const detail = matches
-      .map((m) => `${m.전용면적}㎡(${m.주택형타입내용}·${m.세대수}세대)`)
-      .join(" + ");
-    const typeInfo = matches.length > 1 ? `주택형 ${matches.length}개 병합: ${detail}` : detail;
-    console.log(
-      `[kb] ${apt.name} ${targetArea}㎡: 매매 ${formatMan(merged.dealPriceGeneral)} · ` +
-        `전세 ${formatMan(merged.jeonseGeneral)} — ${typeInfo}`,
-    );
-
-    return {
-      complexNo: apt.kbComplexId,
-      area: targetArea,
-      baseDate: new Date().toISOString().slice(0, 10),
-      ...merged,
-    };
-  } catch (err) {
-    console.warn(`[kb] 시세 조회 실패 (${apt.name} ${targetArea}㎡):`, err);
+  if (matches.length === 0) {
+    console.warn(`[kb] ${apt.name}: 전용 ${targetArea}㎡ 시세 없음`);
     return null;
   }
+
+  // 면적별로 항상 한 줄 남긴다. 병합될 때만 찍으면 병합이 없는 면적은
+  // 조사에서 빠진 것처럼 보인다.
+  const merged = mergeAreas(matches);
+  const detail = matches
+    .map((m) => `${m.전용면적}㎡(${m.주택형타입내용}·${m.세대수}세대)`)
+    .join(" + ");
+  const typeInfo = matches.length > 1 ? `주택형 ${matches.length}개 병합: ${detail}` : detail;
+  console.log(
+    `[kb] ${apt.name} ${targetArea}㎡: 매매 ${formatMan(merged.dealPriceGeneral)} · ` +
+      `전세 ${formatMan(merged.jeonseGeneral)} — ${typeInfo}`,
+  );
+
+  return {
+    complexNo: apt.kbComplexId,
+    area: targetArea,
+    baseDate: new Date().toISOString().slice(0, 10),
+    ...merged,
+  };
 }
 
 /** 마이그레이션 전이라 area / jeonse_price_general 칼럼이 없을 때의 안내 */
@@ -136,15 +137,12 @@ export async function collectKbPrices(apartments: ApartmentItem[]): Promise<KbPr
 
       if (error) {
         if (isMissingColumn(error.message)) {
-          console.error(
+          throw new Error(
             "[kb] kb_prices에 area / jeonse_price_general 칼럼이 없습니다. " +
-              "src/db/migrations/001-kb-prices-per-area.sql을 Supabase SQL Editor에서 실행하세요. " +
-              "그 전까지 KB 시세는 저장되지 않습니다.",
+              "src/db/migrations/001-kb-prices-per-area.sql을 Supabase SQL Editor에서 실행하세요.",
           );
-          return results;
         }
-        console.error(`[kb] ${apt.name} ${target.area}㎡ 저장 실패: ${error.message}`);
-        continue;
+        throw new Error(`[kb] ${apt.name} ${target.area}㎡ 저장 실패: ${error.message}`);
       }
 
       results.push(price);
