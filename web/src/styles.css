@@ -27,8 +27,6 @@
 
   /* 차트 밴드 채움 — 배경 밝기에 따라 투명도가 달라야 해서 완성된 색으로 둔다 */
   --color-band-ask: rgba(178, 106, 0, 0.14);
-  --color-band-kb: rgba(76, 70, 201, 0.11);
-  --color-bar-permit: rgba(8, 145, 178, 0.55);
   --color-grid: #e6e6ec;
   --color-scrim: rgba(251, 251, 253, 0.72);
 
@@ -92,8 +90,6 @@
     --color-neg: #ff6482;
 
     --color-band-ask: rgba(255, 159, 10, 0.09);
-    --color-band-kb: rgba(125, 122, 255, 0.07);
-    --color-bar-permit: rgba(34, 211, 238, 0.34);
     --color-grid: #23242a;
     --color-scrim: rgba(10, 10, 12, 0.72);
 
@@ -119,8 +115,6 @@
   --color-neg: #ff6482;
 
   --color-band-ask: rgba(255, 159, 10, 0.09);
-  --color-band-kb: rgba(125, 122, 255, 0.07);
-  --color-bar-permit: rgba(34, 211, 238, 0.34);
   --color-grid: #23242a;
   --color-scrim: rgba(10, 10, 12, 0.72);
 

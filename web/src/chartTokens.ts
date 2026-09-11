@@ -5,11 +5,9 @@ export interface ChartTokens {
   kb: string;
   mine: string;
   permit: string;
-  barPermit: string;
   border: string;
   grid: string;
   bandAsk: string;
-  bandKb: string;
   muted: string;
   card: string;
   text: string;
@@ -21,11 +19,9 @@ const TOKEN_NAMES: Record<keyof ChartTokens, string> = {
   kb: "--color-kb",
   mine: "--color-mine",
   permit: "--color-permit",
-  barPermit: "--color-bar-permit",
   border: "--color-border",
   grid: "--color-grid",
   bandAsk: "--color-band-ask",
-  bandKb: "--color-band-kb",
   muted: "--color-muted",
   card: "--color-card",
   text: "--color-text",

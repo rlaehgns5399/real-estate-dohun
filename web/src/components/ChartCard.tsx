@@ -39,22 +39,28 @@ const X_PAD = 3 * DAY_MS;
 const MIN_RANGE = 14 * DAY_MS;
 
 /**
- * 허가 막대가 차지할 세로 비율의 역수.
+ * 허가 눈금이 차지할 세로 비율의 역수.
  *
- * y2 최댓값을 실제 최대 건수의 이만큼으로 잡아, 가장 많은 날의 막대도 아래 1/3까지만
- * 올라오게 한다. 가격 곡선을 가리지 않으면서 건수의 많고 적음은 그대로 읽힌다.
+ * y2 최댓값을 실제 최대 건수의 이만큼으로 잡아, 가장 많은 날도 아래 1/5 안에 머문다.
+ * 가격 영역에 아예 들어오지 않으면서 건수의 많고 적음은 높이로 그대로 읽힌다.
+ * 이 값을 3 이하로 낮추면 눈금이 실거래 점 사이를 뚫고 올라와 차트가 어수선해진다.
  */
-const PERMIT_HEADROOM = 3;
+const PERMIT_HEADROOM = 5;
 
-/** 막대 폭(px)을 고정한다. x축이 몇 달이든 몇 년이든 막대가 실처럼 얇아지지 않는다. */
-const PERMIT_BAR_PX = 4;
+/**
+ * 눈금 폭(px). x축이 몇 달이든 몇 년이든 실처럼 얇아지지 않게 고정한다.
+ *
+ * 얇고 각지게 둔다. 테두리를 두르거나 모서리를 굴리면 폭이 좁아 윤곽선만 도드라져
+ * 통통한 상자처럼 보인다.
+ */
+const PERMIT_BAR_PX = 2.5;
 
 /** 범례 칩 하나가 켜고 끄는 데이터셋 라벨들. 밴드는 상/하한 두 개가 한 쌍이다. */
 interface Series {
   key: string;
   label: string;
   labels: string[];
-  swatch: "dot" | "line" | "band" | "dash" | "bar";
+  swatch: "dot" | "line" | "band" | "dash" | "bar" | "rails";
   color: string;
   present: (area: AreaPage) => boolean;
 }
@@ -88,7 +94,7 @@ const SERIES: Series[] = [
     key: "kbBand",
     label: "KB 하위~상위",
     labels: ["KB 상위평균", "KB 하위평균"],
-    swatch: "band",
+    swatch: "rails",
     color: "var(--color-kb)",
     present: (a) => a.chart.kbLower.length > 0,
   },
@@ -129,6 +135,18 @@ function Swatch({ series }: { series: Series }) {
           background: "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
         }}
       />
+    );
+  }
+  // 경계선 한 쌍 — 위아래 얇은 선 사이가 비어 있는 밴드를 뜻한다
+  if (series.swatch === "rails") {
+    return (
+      <i
+        className="inline-flex h-2 w-3.5 shrink-0 flex-col justify-between"
+        style={{ color: series.color }}
+      >
+        <i className="block h-px w-full rounded-sm bg-current" />
+        <i className="block h-px w-full rounded-sm bg-current" />
+      </i>
     );
   }
   if (series.swatch === "bar") {
@@ -225,13 +243,16 @@ export function ChartCard({ area, theme }: Props) {
     const maxPermit = permits.length > 0 ? Math.max(...permits.map((p) => p.y)) : 0;
 
     const datasets: Array<Record<string, unknown>> = [
+      // 밴드가 둘인데 둘 다 채우면 겹친 구간이 어느 쪽도 아닌 색이 된다.
+      // 면은 호가 하나만 쓰고, KB는 위·아래 경계선으로 둘러 표시한다.
+      // 실제로 관측된 값(호가)에 면을, 기관 추정치(KB)에 선을 주는 편이 의미와도 맞다.
       {
         type: "line",
         label: "KB 상위평균",
         data: stretch(area.chart.kbUpper, bounds),
-        borderColor: "transparent",
-        backgroundColor: tokens.bandKb,
-        fill: "+1",
+        borderColor: tokens.kb,
+        borderWidth: 1,
+        fill: false,
         pointRadius: 0,
         pointHitRadius: 0,
         cubicInterpolationMode: "monotone",
@@ -241,7 +262,9 @@ export function ChartCard({ area, theme }: Props) {
         type: "line",
         label: "KB 하위평균",
         data: stretch(area.chart.kbLower, bounds),
-        borderColor: "transparent",
+        borderColor: tokens.kb,
+        borderWidth: 1,
+        fill: false,
         pointRadius: 0,
         pointHitRadius: 0,
         cubicInterpolationMode: "monotone",
@@ -308,10 +331,9 @@ export function ChartCard({ area, theme }: Props) {
         label: "토지거래허가",
         yAxisID: "y2",
         data: xy(permits),
-        backgroundColor: tokens.barPermit,
-        borderColor: tokens.permit,
-        borderWidth: 1,
-        borderRadius: 1.5,
+        backgroundColor: tokens.permit,
+        borderWidth: 0,
+        borderRadius: 0,
         barThickness: PERMIT_BAR_PX,
         maxBarThickness: PERMIT_BAR_PX,
         order: 9,
@@ -344,6 +366,10 @@ export function ChartCard({ area, theme }: Props) {
         scales: {
           x: {
             type: "linear",
+            // 막대 데이터셋이 있으면 Chart.js가 양끝에 막대 반 칸씩 여백을 넣는다.
+            // 범주형 축에서는 맞지만 여기서는 x가 실제 시각이라 데이터가 축 끝에
+            // 닿아야 한다. 끄지 않으면 첫 관측과 마지막 관측 바깥이 비어 보인다.
+            offset: false,
             min: bounds.min,
             max: bounds.max,
             border: { color: tokens.border },
@@ -369,8 +395,8 @@ export function ChartCard({ area, theme }: Props) {
               callback: (value) => `${(Number(value) / 10000).toFixed(1)}억`,
             },
           },
-          // 건수 축. 실제 최대 건수의 PERMIT_HEADROOM배를 천장으로 둬서 막대가
-          // 아래쪽에만 머문다. 눈금은 정수로만 찍는다 — 0.5건은 없는 값이다.
+          // 건수 축. 실제 최대 건수의 PERMIT_HEADROOM배를 천장으로 둬서 눈금이
+          // 하단 레일에만 머문다. 눈금값은 정수로만 찍는다 — 0.5건은 없는 값이다.
           y2: {
             display: permits.length > 0,
             position: "right",
