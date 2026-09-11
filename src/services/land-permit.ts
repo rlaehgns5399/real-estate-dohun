@@ -5,6 +5,9 @@ import type { ApartmentItem, LandPermit } from "@/types";
 /** 한 번에 보내는 행 수. 백필은 수천 건이 나올 수 있어 나눠 보낸다. */
 const CHUNK = 500;
 
+/** 로그에 찍는 날짜. 조회에 쓴 값과 같은 기준(UTC)이어야 무엇을 물었는지가 정확하다. */
+const day = (d: Date) => d.toISOString().slice(0, 10);
+
 function toRow(p: LandPermit) {
   return {
     sgg_cd: p.sggCd,
@@ -63,32 +66,31 @@ export async function collectPermits(
   apt: ApartmentItem,
   from: Date,
   to: Date,
-  verbose = false,
+  label = "조사",
 ): Promise<LandPermit[]> {
   const parcel = apt.permitParcel;
   if (!parcel) return [];
 
+  const verbose = label !== "조사";
   const all = await fetchPermitRange(parcel.sggCd, from, to, (b, e, n) => {
-    if (verbose) {
-      console.log(
-        `[permit] ${b.toISOString().slice(0, 10)} ~ ${e.toISOString().slice(0, 10)}: ${n}건`,
-      );
-    }
+    // 창별 진행은 백필에서만 찍는다. 매 실행 수집은 창이 하나뿐이라 중복이다.
+    if (verbose) console.log(`  ${day(b)}~${day(e)}: ${n}건`);
   });
 
   const mine = all.filter((p) => matchesParcel(p, parcel));
   await savePermits(mine);
 
+  // 자치구 전체 건수를 괄호에 남긴다. 이 필지가 0건일 때 "허가가 없었다"와
+  // "조회가 빈 결과를 줬다"를 이 숫자 하나로 가를 수 있다.
   const granted = mine.filter((p) => p.jobGbnNm === "허가").length;
   console.log(
-    `[permit] ${apt.name}(${parcel.lawdCd} ${Number(parcel.bobn)}): ` +
-      `자치구 ${all.length}건 중 이 필지 ${mine.length}건 (허가 ${granted}건) 저장`,
+    `[토지거래허가 ${label}] ${day(from)}~${day(to)}: ${granted}건 (자치구 ${all.length}건 중)`,
   );
 
   return mine;
 }
 
-/** 매 실행마다 도는 최신화 — 최근 62일 */
+/** 매 실행마다 도는 최신화 — 최근 62일. 과거는 `pnpm backfill:permits`가 따로 채운다. */
 export async function updateRecentPermits(apartments: ApartmentItem[]): Promise<void> {
   const { from, to } = recentWindow();
 

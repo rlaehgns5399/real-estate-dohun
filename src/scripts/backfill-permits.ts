@@ -30,11 +30,10 @@ async function main() {
     return;
   }
 
-  console.log(`=== 토지거래허가 백필 ${fromArg} ~ 오늘 (단지 ${targets.length}개) ===`);
   for (const apt of targets) {
-    await collectPermits(apt, from, to, true);
+    console.log(`[토지거래허가 백필] ${apt.name} — ${fromArg}부터 62일씩 나눠 조회`);
+    await collectPermits(apt, from, to, "백필");
   }
-  console.log("=== 백필 완료 ===");
 }
 
 main().catch((err) => {
