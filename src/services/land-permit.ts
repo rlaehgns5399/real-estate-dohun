@@ -80,12 +80,17 @@ export async function collectPermits(
   const mine = all.filter((p) => matchesParcel(p, parcel));
   await savePermits(mine);
 
-  // 자치구 전체 건수를 괄호에 남긴다. 이 필지가 0건일 때 "허가가 없었다"와
-  // "조회가 빈 결과를 줬다"를 이 숫자 하나로 가를 수 있다.
+  // 자치구 전체가 0건이면 조회가 빈 결과를 준 것이다 — 강동구만 해도 62일에 400건대가
+  // 나온다. 평소엔 굳이 보여줄 숫자가 아니라서, 수상할 때만 꺼내 경고한다.
+  if (all.length === 0) {
+    console.warn(
+      `[토지거래허가 ${label}] 경고: ${day(from)}~${day(to)} 자치구 ${parcel.sggCd} 전체가 0건입니다. ` +
+        "허가가 없었던 게 아니라 조회가 빈 결과를 줬을 수 있습니다.",
+    );
+  }
+
   const granted = mine.filter((p) => p.jobGbnNm === "허가").length;
-  console.log(
-    `[토지거래허가 ${label}] ${day(from)}~${day(to)}: ${granted}건 (자치구 ${all.length}건 중)`,
-  );
+  console.log(`[토지거래허가 ${label}] ${apt.name} ${day(from)}~${day(to)}: ${granted}건`);
 
   return mine;
 }

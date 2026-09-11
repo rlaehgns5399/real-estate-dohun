@@ -41,6 +41,7 @@ JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 �
 | `pnpm telegram` | 수집 → 텔레그램 발송 |
 | `pnpm data` | 수집 없이 Supabase → `data/latest.json` 갱신 |
 | `pnpm backfill:permits [YYYY-MM-DD]` | 토지거래허가 과거 이력 채우기 (기본 2025-10-20) |
+| `pnpm backfill:kb` | KB 과거 시세(월별) 채우기 — 관심 면적을 새로 추가했을 때 |
 | `pnpm dev` | Vite 개발 서버 (HMR) |
 | `pnpm build` | `dist/` 생성 |
 | `pnpm preview` | 빌드 결과 로컬 확인 |
