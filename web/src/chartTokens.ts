@@ -4,6 +4,8 @@ export interface ChartTokens {
   ask: string;
   kb: string;
   mine: string;
+  permit: string;
+  barPermit: string;
   border: string;
   grid: string;
   bandAsk: string;
@@ -18,6 +20,8 @@ const TOKEN_NAMES: Record<keyof ChartTokens, string> = {
   ask: "--color-ask",
   kb: "--color-kb",
   mine: "--color-mine",
+  permit: "--color-permit",
+  barPermit: "--color-bar-permit",
   border: "--color-border",
   grid: "--color-grid",
   bandAsk: "--color-band-ask",

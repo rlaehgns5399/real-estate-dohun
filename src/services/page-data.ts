@@ -61,6 +61,12 @@ interface ListingRow {
   last_seen_at: string;
 }
 
+interface LandPermitRow {
+  permit_date: string;
+  job_gbn_nm: string;
+  jimok: string;
+}
+
 interface TransactionRow {
   apartment_name: string;
   deal_date: string;
@@ -149,6 +155,29 @@ interface AskSnapshotRow {
   snapshot_date: string;
   low: number;
   high: number;
+}
+
+/**
+ * 토지거래허가를 날짜별 건수로 접는다.
+ *
+ * 처리구분이 "허가"인 건만 센다. 같은 목록에 취하·취소·기타가 섞여 오는데, 그것까지
+ * 세면 "거래가 성사됐다"는 신호가 흐려진다.
+ *
+ * 지목은 거르지 않는다. 이 단지 지번(상일동 28)에는 '대'가 대부분이고 '답'이 간간이
+ * 섞이는데, 원본이 접수번호마다 지번을 하나만 보여주는 탓이라 '답'이 붙은 건이 정말
+ * 다른 땅인지 확신할 수 없다. 빠뜨리는 쪽이 더 나쁘므로 일단 다 센다 — 원본에 지목이
+ * 남아 있으니 판단이 서면 여기서 걸면 된다.
+ */
+function toPermitCounts(rows: LandPermitRow[]): Array<{ t: number; y: number }> {
+  const byDate = new Map<string, number>();
+  for (const row of rows) {
+    if (row.job_gbn_nm !== "허가") continue;
+    byDate.set(row.permit_date, (byDate.get(row.permit_date) ?? 0) + 1);
+  }
+
+  return [...byDate.entries()]
+    .map(([date, count]) => ({ t: new Date(`${date}T00:00:00Z`).getTime(), y: count }))
+    .sort((a, b) => a.t - b.t);
 }
 
 /** ask_snapshots에 기록된 매매 호가 범위 — 관측 당시 값 그대로라 정확하다 */
@@ -467,6 +496,7 @@ function buildAreaPage(
   allTxRows: TransactionRow[],
   kbRows: KbRow[],
   ask: { low: Array<{ t: number; y: number }>; high: Array<{ t: number; y: number }> },
+  permits: Array<{ t: number; y: number }>,
   now: number,
 ): AreaPage {
   const listingRows = allListingRows.filter(
@@ -510,6 +540,8 @@ function buildAreaPage(
     kbUpper: kbPoint((r) => r.deal_price_upper),
     askLow: condense(ask.low),
     askHigh: condense(ask.high),
+    // 허가는 단지(지번) 단위라 면적을 나누지 않는다. 49㎡와 59㎡ 탭에 같은 값이 뜬다.
+    permits,
   };
 
   const summary = buildSummary(target, active, transactions, kbRows.at(-1), newCount, removedCount);
@@ -536,6 +568,32 @@ function buildAreaPage(
   };
 }
 
+/**
+ * 이 단지 지번의 허가 내역을 날짜별 건수로 가져온다.
+ *
+ * 조회가 실패해도 페이지는 그려야 한다 — 허가는 곁다리 정보고, 이것 때문에 시세와
+ * 매물까지 못 보게 되는 건 손해가 크다. 대신 조용히 넘기지 않고 로그를 남긴다.
+ */
+async function fetchPermitCounts(apt: ApartmentItem): Promise<Array<{ t: number; y: number }>> {
+  const parcel = apt.permitParcel;
+  if (!parcel) return [];
+
+  const { data, error } = await supabase
+    .from("land_permits")
+    .select("permit_date, job_gbn_nm, jimok")
+    .eq("lawd_cd", parcel.lawdCd)
+    .eq("bobn", parcel.bobn)
+    .eq("bubn", parcel.bubn)
+    .order("permit_date", { ascending: true });
+
+  if (error) {
+    console.warn(`[page-data] land_permits 조회 실패 — 허가 계열을 비웁니다: ${error.message}`);
+    return [];
+  }
+
+  return toPermitCounts((data ?? []) as LandPermitRow[]);
+}
+
 async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<ApartmentPage> {
   const [listingRes, txRes, kbRes] = await Promise.all([
     supabase.from("listings").select("*").eq("naver_complex_id", apt.naverComplexId),
@@ -551,6 +609,8 @@ async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<Apar
       .order("fetched_at", { ascending: false }),
   ]);
 
+  const permits = await fetchPermitCounts(apt);
+
   const allListingRows = (listingRes.data ?? []) as ListingRow[];
   const allTxRows = (txRes.data ?? []) as TransactionRow[];
   const allKbRows = (kbRes.data ?? []) as KbRow[];
@@ -562,7 +622,7 @@ async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<Apar
       );
       const ask = await fetchAskSeries(apt, target.area, saleRows);
       const kbRows = dedupeKbByDate(selectKbRowsForArea(allKbRows, target.area, index === 0));
-      return buildAreaPage(target, allListingRows, allTxRows, kbRows, ask, now);
+      return buildAreaPage(target, allListingRows, allTxRows, kbRows, ask, permits, now);
     }),
   );
 

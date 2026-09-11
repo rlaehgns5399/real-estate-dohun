@@ -6,6 +6,42 @@ export interface AreaTarget {
   purchasePrice?: number;
 }
 
+/**
+ * 토지거래허가를 조회할 필지.
+ *
+ * 허가 내역은 단지명이 아니라 지번으로만 나온다. 그래서 단지를 지번으로 지정해야 한다.
+ * 확인 방법: 국토부 실거래가 응답의 umdNm(법정동) + jibun, 또는 토지이음.
+ * 예) 강동리엔파크14단지 = 상일동 28 → lawdCd 1174010300, bobn "0028", bubn "0000"
+ */
+export interface PermitParcel {
+  /** 자치구 코드 (법정동코드 앞 5자리). 조회가 구 단위로만 되므로 반드시 필요하다. */
+  sggCd: string;
+  /** 법정동코드 10자리 */
+  lawdCd: string;
+  /** 본번 — 응답과 맞추려면 4자리로 0을 채운다 */
+  bobn: string;
+  /** 부번 — 부번이 없으면 "0000" */
+  bubn: string;
+}
+
+/** 토지거래허가 한 건 */
+export interface LandPermit {
+  sggCd: string;
+  accYear: string;
+  accNo: string;
+  objSeqno: string;
+  lawdCd: string;
+  bobn: string;
+  bubn: string;
+  address: string;
+  jimok: string;
+  /** 허가 / 취하 / 취소 / 기타 */
+  jobGbnNm: string;
+  usePurp: string;
+  /** 처리(허가) 년월일 YYYY-MM-DD */
+  permitDate: string;
+}
+
 /** 관심 아파트 */
 export interface ApartmentItem {
   /** 국토교통부 API에 나오는 아파트명 (정확히 일치해야 함) */
@@ -20,6 +56,8 @@ export interface ApartmentItem {
   regionCode: string;
   /** 지켜볼 전용면적들. 첫 번째가 페이지의 기본 탭이 된다. */
   areas: AreaTarget[];
+  /** 토지거래허가를 볼 필지. 없으면 이 단지는 허가 수집을 건너뛴다 (서울시만 조회 가능). */
+  permitParcel?: PermitParcel;
 }
 
 /** 국토교통부 실거래가 */

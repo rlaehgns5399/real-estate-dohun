@@ -16,7 +16,8 @@
     "format": "biome format --write src web",
     "bot": "tsx src/bot.ts",
     "bot:listen": "tsx src/bot.ts listen",
-    "warm": "tsx src/scripts/warm-cache.ts"
+    "warm": "tsx src/scripts/warm-cache.ts",
+    "backfill:permits": "tsx src/scripts/backfill-permits.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

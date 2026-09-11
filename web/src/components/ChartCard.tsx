@@ -1,6 +1,8 @@
 import type { AreaPage } from "@shared/types/page";
 import { formatEok } from "@shared/utils/format";
 import {
+  BarController,
+  BarElement,
   Chart,
   Filler,
   LinearScale,
@@ -20,6 +22,8 @@ import type { ResolvedTheme } from "@/hooks/useTheme";
 Chart.register(
   LineController,
   ScatterController,
+  BarController,
+  BarElement,
   LineElement,
   PointElement,
   LinearScale,
@@ -34,12 +38,23 @@ const X_PAD = 3 * DAY_MS;
 /** 확대 하한 — 이보다 좁게는 못 들어간다 */
 const MIN_RANGE = 14 * DAY_MS;
 
+/**
+ * 허가 막대가 차지할 세로 비율의 역수.
+ *
+ * y2 최댓값을 실제 최대 건수의 이만큼으로 잡아, 가장 많은 날의 막대도 아래 1/3까지만
+ * 올라오게 한다. 가격 곡선을 가리지 않으면서 건수의 많고 적음은 그대로 읽힌다.
+ */
+const PERMIT_HEADROOM = 3;
+
+/** 막대 폭(px)을 고정한다. x축이 몇 달이든 몇 년이든 막대가 실처럼 얇아지지 않는다. */
+const PERMIT_BAR_PX = 4;
+
 /** 범례 칩 하나가 켜고 끄는 데이터셋 라벨들. 밴드는 상/하한 두 개가 한 쌍이다. */
 interface Series {
   key: string;
   label: string;
   labels: string[];
-  swatch: "dot" | "line" | "band" | "dash";
+  swatch: "dot" | "line" | "band" | "dash" | "bar";
   color: string;
   present: (area: AreaPage) => boolean;
 }
@@ -85,6 +100,14 @@ const SERIES: Series[] = [
     color: "var(--color-mine)",
     present: (a) => a.summary.purchasePrice !== null,
   },
+  {
+    key: "permit",
+    label: "토지거래허가",
+    labels: ["토지거래허가"],
+    swatch: "bar",
+    color: "var(--color-permit)",
+    present: (a) => (a.chart.permits?.length ?? 0) > 0,
+  },
 ];
 
 /** 범례 칩의 색 표식 — 점 / 실선 / 밴드 / 점선 */
@@ -105,6 +128,14 @@ function Swatch({ series }: { series: Series }) {
           color: series.color,
           background: "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
         }}
+      />
+    );
+  }
+  if (series.swatch === "bar") {
+    return (
+      <i
+        className="inline-block h-2.5 w-[3px] shrink-0 rounded-[1px]"
+        style={{ background: series.color }}
       />
     );
   }
@@ -170,6 +201,7 @@ export function ChartCard({ area, theme }: Props) {
       ...area.chart.kbUpper,
       ...area.chart.askLow,
       ...area.chart.askHigh,
+      ...(area.chart.permits ?? []),
     ].map((p) => p.t);
 
     if (times.length === 0) return null;
@@ -189,6 +221,8 @@ export function ChartCard({ area, theme }: Props) {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const purchase = area.summary.purchasePrice;
+    const permits = area.chart.permits ?? [];
+    const maxPermit = permits.length > 0 ? Math.max(...permits.map((p) => p.y)) : 0;
 
     const datasets: Array<Record<string, unknown>> = [
       {
@@ -266,6 +300,24 @@ export function ChartCard({ area, theme }: Props) {
       });
     }
 
+    // 허가 건수는 가격과 단위가 달라 오른쪽 축(y2)에 따로 그린다.
+    // order를 가장 크게 줘서 가격 계열 뒤에 깔리게 한다.
+    if (permits.length > 0) {
+      datasets.push({
+        type: "bar",
+        label: "토지거래허가",
+        yAxisID: "y2",
+        data: xy(permits),
+        backgroundColor: tokens.barPermit,
+        borderColor: tokens.permit,
+        borderWidth: 1,
+        borderRadius: 1.5,
+        barThickness: PERMIT_BAR_PX,
+        maxBarThickness: PERMIT_BAR_PX,
+        order: 9,
+      });
+    }
+
     datasets.push({
       type: "scatter",
       label: "실거래",
@@ -317,6 +369,24 @@ export function ChartCard({ area, theme }: Props) {
               callback: (value) => `${(Number(value) / 10000).toFixed(1)}억`,
             },
           },
+          // 건수 축. 실제 최대 건수의 PERMIT_HEADROOM배를 천장으로 둬서 막대가
+          // 아래쪽에만 머문다. 눈금은 정수로만 찍는다 — 0.5건은 없는 값이다.
+          y2: {
+            display: permits.length > 0,
+            position: "right",
+            beginAtZero: true,
+            max: Math.max(PERMIT_HEADROOM, maxPermit * PERMIT_HEADROOM),
+            border: { display: false },
+            grid: { drawOnChartArea: false, drawTicks: false },
+            ticks: {
+              color: tokens.muted,
+              font: { size: 11 },
+              padding: 8,
+              precision: 0,
+              stepSize: Math.max(1, maxPermit),
+              callback: (value) => (Number(value) > maxPermit ? "" : `${value}건`),
+            },
+          },
         },
         plugins: {
           legend: { display: false },
@@ -334,6 +404,10 @@ export function ChartCard({ area, theme }: Props) {
             callbacks: {
               title: (items) => fullDate(Number(items[0].parsed.x)),
               label: (ctx) => {
+                // 허가 계열만 단위가 건수다. 가격 포맷을 그대로 쓰면 "3건"이 "0.0억"이 된다.
+                if (ctx.dataset.yAxisID === "y2") {
+                  return `${ctx.dataset.label} ${ctx.parsed.y}건`;
+                }
                 const base = `${ctx.dataset.label} ${formatEok(Number(ctx.parsed.y))}`;
                 const floor = (ctx.raw as { floor?: number })?.floor;
                 return floor ? `${base} (${floor}층)` : base;

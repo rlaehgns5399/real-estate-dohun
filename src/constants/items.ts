@@ -13,6 +13,8 @@ import type { ApartmentItem } from "@/types";
  * - regionCode:      법정동코드 앞 5자리
  *                    확인: https://rt.molit.go.kr (지역 선택 시 코드 확인)
  *                    예: 강남구=11680, 서초구=11650, 송파구=11710
+ * - permitParcel:    토지거래허가를 볼 필지 (서울시만 가능, 없으면 건너뜀)
+ *                    확인: 국토부 실거래가 응답의 umdNm + jibun, 또는 https://www.eum.go.kr
  * - areas:           지켜볼 전용면적들. 첫 번째가 페이지 기본 탭이 된다.
  *                    매매·전세·월세를 모두 수집하므로 거래 유형은 지정하지 않는다.
  *                    KB가 주택형을 나눠 놓은 면적(예: 59.94 A / 59.78 B)은
@@ -26,5 +28,7 @@ export const APARTMENT_ITEMS: ApartmentItem[] = [
     address: "서울특별시 강동구 고덕로98길 160",
     regionCode: "11740",
     areas: [{ area: 49, purchasePrice: 89000 }, { area: 59 }],
+    // 상일동 28. 국토부 실거래가 응답(umdNm=상일동, jibun=28)으로 확인했다.
+    permitParcel: { sggCd: "11740", lawdCd: "1174010300", bobn: "0028", bubn: "0000" },
   },
 ];

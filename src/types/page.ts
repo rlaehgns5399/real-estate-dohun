@@ -60,6 +60,13 @@ export interface ChartSeries {
   /** 그 날 올라와 있던 매매 매물 호가의 최저 / 최고 */
   askLow: Array<{ t: number; y: number }>;
   askHigh: Array<{ t: number; y: number }>;
+  /**
+   * 이 단지 지번에 토지거래허가가 난 날짜별 건수.
+   *
+   * 0건인 날은 넣지 않는다. 축 전체에 0을 깔면 막대가 픽셀 이하로 뭉개지고 파일만 커진다.
+   * 가격과 단위가 전혀 달라 차트에서는 오른쪽 축(y2)에 따로 그린다.
+   */
+  permits: Array<{ t: number; y: number }>;
 }
 
 export interface PageListing {

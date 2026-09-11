@@ -40,6 +40,7 @@ JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 �
 | `pnpm start` | 수집 → `data/latest.json` → 커밋 → 푸시 (평소엔 이것만) |
 | `pnpm telegram` | 수집 → 텔레그램 발송 |
 | `pnpm data` | 수집 없이 Supabase → `data/latest.json` 갱신 |
+| `pnpm backfill:permits [YYYY-MM-DD]` | 토지거래허가 과거 이력 채우기 (기본 2025-10-20) |
 | `pnpm dev` | Vite 개발 서버 (HMR) |
 | `pnpm build` | `dist/` 생성 |
 | `pnpm preview` | 빌드 결과 로컬 확인 |
@@ -48,6 +49,11 @@ JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 �
 | `pnpm typecheck` / `pnpm lint` | 타입 검사 / 린트 |
 
 데이터가 바뀌지 않으면 `pnpm start`는 커밋을 만들지 않는다 (`generatedAt`은 비교에서 제외).
+
+토지거래허가는 일상 수집과 백필을 나눠 둔다. 원본(서울시 부동산정보광장)이 **한 번에 62일까지만**
+돌려주고 그 이상을 요청하면 에러 없이 빈 결과를 주기 때문이다. `pnpm start`는 최근 62일만 보고,
+그보다 과거는 `pnpm backfill:permits`가 62일 창으로 쪼개 훑는다 — 62일은 조회 폭의 한계지
+보관 기간이 아니라서 과거도 읽힌다.
 
 커밋·푸시를 떼어내고 싶으면 `src/index.ts`에서 `publishData` 대신 `writeDataFile`만 호출하면 된다.
 
@@ -124,11 +130,13 @@ pnpm exec playwright install --with-deps chromium
 ### 3. Supabase 스키마
 
 `src/db/schema.sql`을 SQL Editor에서 실행. 테이블은 `transactions`, `listings`, `kb_prices`,
-`ask_snapshots` 네 개다.
+`ask_snapshots`, `land_permits` 다섯 개다.
 
 이미 만들어 쓰던 DB라면 `src/db/migrations/`의 SQL을 순서대로 한 번씩 실행한다.
 `001-kb-prices-per-area.sql`은 `kb_prices`에 `area`와 `jeonse_price_general`을 추가한다 —
 이게 없으면 한 단지에서 면적을 하나밖에 수집하지 못하고, 수집기가 그 사실을 로그로 알린다.
+`002-land-permits.sql`은 토지거래허가를 담을 `land_permits`를 만든다. 없어도 나머지는
+정상 동작하고, 차트에서 허가 계열만 빠진다.
 
 이어서 RLS를 켠다. 정책은 만들지 않는다 — 브라우저가 Supabase를 직접 호출하지 않으므로
 anon/publishable 키로 열려 있을 이유가 없고, 수집기는 secret key로 우회한다.
@@ -138,6 +146,7 @@ alter table public.transactions   enable row level security;
 alter table public.listings       enable row level security;
 alter table public.kb_prices      enable row level security;
 alter table public.ask_snapshots  enable row level security;
+alter table public.land_permits   enable row level security;
 ```
 
 ### 4. 관심 아파트 등록

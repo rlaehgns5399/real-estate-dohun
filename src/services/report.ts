@@ -1,6 +1,7 @@
 import { collectKbPrices } from "@/collectors/kb";
 import { collectTransactions } from "@/collectors/molit";
 import { APARTMENT_ITEMS } from "@/constants/items";
+import { updateRecentPermits } from "@/services/land-permit";
 import { updateListingsSnapshot } from "@/services/snapshot";
 import type { ApartmentItem, AreaTarget, KbPrice, ListingDiff, Transaction } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
@@ -52,6 +53,9 @@ export async function runCollection(): Promise<CollectedArea[]> {
 
   const allTransactions = await collectTransactions();
   const kbPrices = await collectKbPrices(APARTMENT_ITEMS);
+
+  // 최근 62일치만 본다. 그보다 과거는 `pnpm backfill:permits`가 따로 채운다.
+  await updateRecentPermits(APARTMENT_ITEMS);
 
   const results: CollectedArea[] = [];
 

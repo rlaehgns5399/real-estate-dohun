@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T02:20:23.117Z",
+  "generatedAt": "2026-09-11T09:23:33.927Z",
   "apartments": [
     {
       "name": "강동리엔파크14단지",
@@ -354,7 +354,8 @@
                 "t": 1789084800000,
                 "y": 100000
               }
-            ]
+            ],
+            "permits": []
           },
           "listings": [
             {
@@ -382,7 +383,7 @@
               "realtorName": "미사서정(031-792-2444)공인중개사사무소",
               "confirmDate": "20260909",
               "firstSeenAt": "2026-09-10T07:30:28.216216+00:00",
-              "daysOnMarket": 0,
+              "daysOnMarket": 1,
               "isNew": false
             },
             {
@@ -494,7 +495,7 @@
               "realtorName": "미사누리공인중개사사무소",
               "confirmDate": "20260910",
               "firstSeenAt": "2026-09-10T07:30:27.106385+00:00",
-              "daysOnMarket": 0,
+              "daysOnMarket": 1,
               "isNew": true
             },
             {
@@ -1711,7 +1712,8 @@
                 "t": 1789084800000,
                 "y": 130000
               }
-            ]
+            ],
+            "permits": []
           },
           "listings": [
             {
@@ -1865,7 +1867,7 @@
               "realtorName": "1번지힐스테이트공인중개사사무소",
               "confirmDate": "20260902",
               "firstSeenAt": "2026-09-03T06:40:17.397+00:00",
-              "daysOnMarket": 7,
+              "daysOnMarket": 8,
               "isNew": false
             },
             {
