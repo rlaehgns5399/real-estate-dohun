@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-10T07:30:29.244Z",
+  "generatedAt": "2026-09-11T02:20:23.117Z",
   "apartments": [
     {
       "name": "강동리엔파크14단지",
@@ -9,7 +9,7 @@
         {
           "area": 49,
           "summary": {
-            "lowestAsk": 97000,
+            "lowestAsk": 95000,
             "medianAsk": 100000,
             "lastDeal": {
               "dealDate": "2026-07-12",
@@ -22,8 +22,8 @@
             "kbUpper": 95000,
             "activeCount": 16,
             "newCount": 10,
-            "removedCount": 23,
-            "askDealGap": 4000,
+            "removedCount": 25,
+            "askDealGap": 2000,
             "purchasePrice": 89000,
             "vsPurchase": 4000,
             "vsPurchasePct": 4.49438202247191
@@ -148,12 +148,12 @@
               {
                 "t": 1773360000000,
                 "y": 85000,
-                "floor": 3
+                "floor": 6
               },
               {
                 "t": 1773360000000,
                 "y": 85000,
-                "floor": 6
+                "floor": 3
               },
               {
                 "t": 1773187200000,
@@ -187,11 +187,11 @@
                 "y": 89500
               },
               {
-                "t": 1788004800000,
+                "t": 1788048000000,
                 "y": 90000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 90000
               }
             ],
@@ -213,11 +213,11 @@
                 "y": 84500
               },
               {
-                "t": 1786320000000,
+                "t": 1786363200000,
                 "y": 85000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 85000
               }
             ],
@@ -251,11 +251,11 @@
                 "y": 94000
               },
               {
-                "t": 1788004800000,
+                "t": 1788048000000,
                 "y": 95000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 95000
               }
             ],
@@ -327,6 +327,10 @@
               {
                 "t": 1788998400000,
                 "y": 97000
+              },
+              {
+                "t": 1789084800000,
+                "y": 95000
               }
             ],
             "askHigh": [
@@ -343,27 +347,27 @@
                 "y": 95000
               },
               {
-                "t": 1782734400000,
+                "t": 1782777600000,
                 "y": 100000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 100000
               }
             ]
           },
           "listings": [
             {
-              "articleId": "2649035241",
-              "price": 97000,
-              "priceText": "9억 7,000",
+              "articleId": "2649153742",
+              "price": 95000,
+              "priceText": "9억 5,000",
               "floor": "저층/14층",
               "buildingName": "1403동",
-              "direction": "남향",
-              "description": "신축급 신혼부부 강추 지하주차장 연결 황산사거리3분",
-              "realtorName": "미사센트럴자이(031-794-8500)공인중개사사무소",
-              "confirmDate": "20260910",
-              "firstSeenAt": "2026-09-10T07:30:27.769746+00:00",
+              "direction": "남동향",
+              "description": "신혼부부 추천물건 상일ic인접  강일역도보이용 관리상태최상",
+              "realtorName": "루나리움루나(031-795-8924)공인중개사사무소",
+              "confirmDate": "20260911",
+              "firstSeenAt": "2026-09-11T02:20:21.925195+00:00",
               "daysOnMarket": 0,
               "isNew": true
             },
@@ -379,7 +383,7 @@
               "confirmDate": "20260909",
               "firstSeenAt": "2026-09-10T07:30:28.216216+00:00",
               "daysOnMarket": 0,
-              "isNew": true
+              "isNew": false
             },
             {
               "articleId": "2648676273",
@@ -392,8 +396,8 @@
               "realtorName": "미사은호(031-793-9006)공인중개사사무소",
               "confirmDate": "20260909",
               "firstSeenAt": "2026-09-09T02:15:47.530204+00:00",
-              "daysOnMarket": 1,
-              "isNew": true
+              "daysOnMarket": 2,
+              "isNew": false
             },
             {
               "articleId": "2647253872",
@@ -406,7 +410,7 @@
               "realtorName": "파크공인중개사사무소",
               "confirmDate": "20260902",
               "firstSeenAt": "2026-09-02T01:48:03.762+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -420,8 +424,64 @@
               "realtorName": "파크공인중개사사무소",
               "confirmDate": "20260907",
               "firstSeenAt": "2026-09-07T01:57:38.213192+00:00",
-              "daysOnMarket": 3,
+              "daysOnMarket": 4,
               "isNew": false
+            },
+            {
+              "articleId": "2643814451",
+              "price": 100000,
+              "priceText": "10억",
+              "floor": "고층/14층",
+              "buildingName": "1403동",
+              "direction": "남향",
+              "description": "로얄동.로얄층으로 채광우수.입주협의가능.공원산책로",
+              "realtorName": "파크공인중개사사무소",
+              "confirmDate": "20260814",
+              "firstSeenAt": "2026-09-02T01:48:05.179+00:00",
+              "daysOnMarket": 9,
+              "isNew": false
+            },
+            {
+              "articleId": "2646010214",
+              "price": 100000,
+              "priceText": "10억",
+              "floor": "고층/14층",
+              "buildingName": "1403동",
+              "direction": "남동향",
+              "description": "21p 큰문 방2  채광 굿 옵션 굿 추천매물",
+              "realtorName": "큰문공인중개사사무소",
+              "confirmDate": "20260827",
+              "firstSeenAt": "2026-09-02T01:48:01.026+00:00",
+              "daysOnMarket": 9,
+              "isNew": false
+            },
+            {
+              "articleId": "2649139705",
+              "price": 100000,
+              "priceText": "10억",
+              "floor": "7층/14층",
+              "buildingName": "1403동",
+              "direction": "남향",
+              "description": "파크추천.신축5년차.풀인테리어. 로얄동로얄층. 공원산책로.입주협의",
+              "realtorName": "파크공인중개사사무소",
+              "confirmDate": "20260911",
+              "firstSeenAt": "2026-09-11T02:20:21.573816+00:00",
+              "daysOnMarket": 0,
+              "isNew": true
+            },
+            {
+              "articleId": "2649134027",
+              "price": 100000,
+              "priceText": "10억",
+              "floor": "7층/14층",
+              "buildingName": "1403동",
+              "direction": "남동향",
+              "description": "입주협의, 에어컨 유, 입주5년차 신축아파트, 집상태 최상",
+              "realtorName": "미사은호(031-793-9006)공인중개사사무소",
+              "confirmDate": "20260911",
+              "firstSeenAt": "2026-09-11T02:20:21.740939+00:00",
+              "daysOnMarket": 0,
+              "isNew": true
             },
             {
               "articleId": "2648952207",
@@ -438,34 +498,6 @@
               "isNew": true
             },
             {
-              "articleId": "2643814451",
-              "price": 100000,
-              "priceText": "10억",
-              "floor": "고층/14층",
-              "buildingName": "1403동",
-              "direction": "남향",
-              "description": "로얄동.로얄층으로 채광우수.입주협의가능.공원산책로",
-              "realtorName": "파크공인중개사사무소",
-              "confirmDate": "20260814",
-              "firstSeenAt": "2026-09-02T01:48:05.179+00:00",
-              "daysOnMarket": 8,
-              "isNew": false
-            },
-            {
-              "articleId": "2646010214",
-              "price": 100000,
-              "priceText": "10억",
-              "floor": "고층/14층",
-              "buildingName": "1403동",
-              "direction": "남동향",
-              "description": "21p 큰문 방2  채광 굿 옵션 굿 추천매물",
-              "realtorName": "큰문공인중개사사무소",
-              "confirmDate": "20260827",
-              "firstSeenAt": "2026-09-02T01:48:01.026+00:00",
-              "daysOnMarket": 8,
-              "isNew": false
-            },
-            {
               "articleId": "2644788518",
               "price": 100000,
               "priceText": "10억",
@@ -476,7 +508,7 @@
               "realtorName": "미사서정(031-792-2444)공인중개사사무소",
               "confirmDate": "20260820",
               "firstSeenAt": "2026-09-02T01:48:02.397+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -490,7 +522,7 @@
               "realtorName": "미사강변동일하이빌 공인중개사 사무소",
               "confirmDate": "20260819",
               "firstSeenAt": "2026-09-02T01:48:05.009+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -504,21 +536,7 @@
               "realtorName": "미사강변동일하이빌 공인중개사 사무소",
               "confirmDate": "20260819",
               "firstSeenAt": "2026-09-02T01:48:04.83+00:00",
-              "daysOnMarket": 8,
-              "isNew": false
-            },
-            {
-              "articleId": "2648202539",
-              "price": 100000,
-              "priceText": "10억",
-              "floor": "7층/14층",
-              "buildingName": "1403동",
-              "direction": "남동향",
-              "description": "1번지. 중문 I 붙박이장등 옵션다수",
-              "realtorName": "1번지힐스테이트공인중개사사무소",
-              "confirmDate": "20260907",
-              "firstSeenAt": "2026-09-08T01:46:11.546876+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -532,7 +550,7 @@
               "realtorName": "미사은호(031-793-9006)공인중개사사무소",
               "confirmDate": "20260907",
               "firstSeenAt": "2026-09-07T01:57:38.442833+00:00",
-              "daysOnMarket": 3,
+              "daysOnMarket": 4,
               "isNew": false
             },
             {
@@ -546,21 +564,7 @@
               "realtorName": "랜드윌공인중개사사무소",
               "confirmDate": "20260904",
               "firstSeenAt": "2026-09-07T01:57:40.515762+00:00",
-              "daysOnMarket": 3,
-              "isNew": false
-            },
-            {
-              "articleId": "2648248883",
-              "price": 100000,
-              "priceText": "10억",
-              "floor": "7층/14층",
-              "buildingName": "1403동",
-              "direction": "남동향",
-              "description": "시스템에어컨 관리잘된집 입주협의가능 채광좋은집",
-              "realtorName": "미사강변동일하이빌공인중개사사무소",
-              "confirmDate": "20260907",
-              "firstSeenAt": "2026-09-08T01:46:11.737616+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 4,
               "isNew": false
             },
             {
@@ -574,7 +578,7 @@
               "realtorName": "큰문공인중개사사무소",
               "confirmDate": "20260908",
               "firstSeenAt": "2026-09-08T01:46:12.291855+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
             }
           ],
@@ -592,6 +596,58 @@
             "gap": 49500
           },
           "timeline": [
+            {
+              "date": "2026-09-11",
+              "type": "new",
+              "label": "신규 매물",
+              "detail": "3건 · 9.5억 ~ 10억",
+              "items": [
+                {
+                  "articleId": "2649153742",
+                  "price": 95000,
+                  "where": "1403동 · 저층/14층",
+                  "note": "남동향 · 루나리움루나(031-795-8924)공인중개사사무소"
+                },
+                {
+                  "articleId": "2649139705",
+                  "price": 100000,
+                  "where": "1403동 · 7층/14층",
+                  "note": "남향 · 파크공인중개사사무소"
+                },
+                {
+                  "articleId": "2649134027",
+                  "price": 100000,
+                  "where": "1403동 · 7층/14층",
+                  "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
+                }
+              ]
+            },
+            {
+              "date": "2026-09-11",
+              "type": "removed",
+              "label": "매물 내려감",
+              "detail": "3건 · 9.7억 ~ 10억",
+              "items": [
+                {
+                  "articleId": "2649035241",
+                  "price": 97000,
+                  "where": "1403동 · 저층/14층",
+                  "note": "남향 · 미사센트럴자이(031-794-8500)공인중개사사무소"
+                },
+                {
+                  "articleId": "2648202539",
+                  "price": 100000,
+                  "where": "1403동 · 7층/14층",
+                  "note": "남동향 · 1번지힐스테이트공인중개사사무소"
+                },
+                {
+                  "articleId": "2648248883",
+                  "price": 100000,
+                  "where": "1403동 · 7층/14층",
+                  "note": "남동향 · 미사강변동일하이빌공인중개사사무소"
+                }
+              ]
+            },
             {
               "date": "2026-09-10",
               "type": "new",
@@ -721,16 +777,16 @@
                   "note": "남동향 · 1번지힐스테이트공인중개사사무소"
                 },
                 {
-                  "articleId": "2648203566",
-                  "price": 100000,
-                  "where": "1403동 · 저층/14층",
-                  "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
-                },
-                {
                   "articleId": "2648248883",
                   "price": 100000,
                   "where": "1403동 · 7층/14층",
                   "note": "남동향 · 미사강변동일하이빌공인중개사사무소"
+                },
+                {
+                  "articleId": "2648203566",
+                  "price": 100000,
+                  "where": "1403동 · 저층/14층",
+                  "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
                 },
                 {
                   "articleId": "2648402531",
@@ -1341,64 +1397,6 @@
                   "note": "남서향 · 미사은호(031-793-9006)공인중개사사무소"
                 }
               ]
-            },
-            {
-              "date": "2026-08-28",
-              "type": "new",
-              "label": "신규 매물",
-              "detail": "3건 · 9.5억 ~ 9.8억",
-              "items": [
-                {
-                  "articleId": "2646310407",
-                  "price": 95000,
-                  "where": "1403동 · 저층/14층",
-                  "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
-                },
-                {
-                  "articleId": "2644949385",
-                  "price": 95000,
-                  "where": "1403동 · 저층/14층",
-                  "note": "남동향 · 미사강변동일하이빌 공인중개사 사무소"
-                },
-                {
-                  "articleId": "2646308946",
-                  "price": 98000,
-                  "where": "1402동 · 고층/11층",
-                  "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
-                }
-              ]
-            },
-            {
-              "date": "2026-08-28",
-              "type": "removed",
-              "label": "매물 내려감",
-              "detail": "4건 · 9.5억 ~ 10억",
-              "items": [
-                {
-                  "articleId": "2646147151",
-                  "price": 95000,
-                  "where": "1403동 · 저층/14층",
-                  "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
-                },
-                {
-                  "articleId": "2646155985",
-                  "price": 95000,
-                  "where": "1403동 · 저층/14층",
-                  "note": "남향 · 파크공인중개사사무소"
-                },
-                {
-                  "articleId": "2646149654",
-                  "price": 98000,
-                  "where": "1402동 · 고층/11층",
-                  "note": "남향 · 미사서정(031-792-2444)공인중개사사무소"
-                },
-                {
-                  "articleId": "2645171786",
-                  "price": 100000,
-                  "where": "1403동 · 고층/14층",
-                  "note": "남동향 · 큰문공인중개사사무소"
-                }
-              ]
             }
           ],
           "transactions": [
@@ -1544,13 +1542,13 @@
               "dealDate": "2026-03-13",
               "price": 85000,
               "area": 49.69,
-              "floor": 3
+              "floor": 6
             },
             {
               "dealDate": "2026-03-13",
               "price": 85000,
               "area": 49.69,
-              "floor": 6
+              "floor": 3
             },
             {
               "dealDate": "2026-03-11",
@@ -1576,7 +1574,7 @@
             "kbUpper": 112000,
             "activeCount": 15,
             "newCount": 9,
-            "removedCount": 18,
+            "removedCount": 19,
             "askDealGap": -2000,
             "purchasePrice": null,
             "vsPurchase": null,
@@ -1646,11 +1644,11 @@
                 "y": 105000
               },
               {
-                "t": 1788609600000,
+                "t": 1788652800000,
                 "y": 105000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 105000
               }
             ],
@@ -1660,11 +1658,11 @@
                 "y": 98500
               },
               {
-                "t": 1788609600000,
+                "t": 1788652800000,
                 "y": 98500
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 98500
               }
             ],
@@ -1678,11 +1676,11 @@
                 "y": 111500
               },
               {
-                "t": 1788739200000,
+                "t": 1788782400000,
                 "y": 112000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 112000
               }
             ],
@@ -1692,11 +1690,11 @@
                 "y": 113000
               },
               {
-                "t": 1788609600000,
+                "t": 1788652800000,
                 "y": 113000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 113000
               }
             ],
@@ -1706,30 +1704,16 @@
                 "y": 130000
               },
               {
-                "t": 1788609600000,
+                "t": 1788652800000,
                 "y": 130000
               },
               {
-                "t": 1788998400000,
+                "t": 1789084800000,
                 "y": 130000
               }
             ]
           },
           "listings": [
-            {
-              "articleId": "2649012446",
-              "price": 113000,
-              "priceText": "11억 3,000",
-              "floor": "저층/13층",
-              "buildingName": "1404동",
-              "direction": "남향",
-              "description": "공원길조성.옵션사항 있는세대.뷰 굿.즉시입주및협의가능",
-              "realtorName": "파크공인중개사사무소",
-              "confirmDate": "20260910",
-              "firstSeenAt": "2026-09-10T07:30:28.000301+00:00",
-              "daysOnMarket": 0,
-              "isNew": true
-            },
             {
               "articleId": "2648304862",
               "price": 113000,
@@ -1741,7 +1725,7 @@
               "realtorName": "제이피공인중개사사무소",
               "confirmDate": "20260907",
               "firstSeenAt": "2026-09-08T01:46:13.154911+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
             },
             {
@@ -1755,8 +1739,22 @@
               "realtorName": "미사강변동일하이빌 공인중개사 사무소",
               "confirmDate": "20260907",
               "firstSeenAt": "2026-09-08T01:46:13.322913+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
+            },
+            {
+              "articleId": "2649050688",
+              "price": 113000,
+              "priceText": "11억 3,000",
+              "floor": "저층/13층",
+              "buildingName": "1404동",
+              "direction": "남동향",
+              "description": "풀옵션 신혼부부강력추천 빠른입주도 가능합니다 입주협의",
+              "realtorName": "미사강변동일하이빌공인중개사사무소",
+              "confirmDate": "20260910",
+              "firstSeenAt": "2026-09-11T02:20:22.264609+00:00",
+              "daysOnMarket": 0,
+              "isNew": true
             },
             {
               "articleId": "2648448039",
@@ -1769,7 +1767,7 @@
               "realtorName": "판교테크노공인중개사사무소",
               "confirmDate": "20260908",
               "firstSeenAt": "2026-09-08T01:46:11.366944+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
             },
             {
@@ -1783,8 +1781,8 @@
               "realtorName": "이화공인중개사",
               "confirmDate": "20260909",
               "firstSeenAt": "2026-09-09T02:15:47.112439+00:00",
-              "daysOnMarket": 1,
-              "isNew": true
+              "daysOnMarket": 2,
+              "isNew": false
             },
             {
               "articleId": "2646843639",
@@ -1797,36 +1795,36 @@
               "realtorName": "미래로공인중개사사무소",
               "confirmDate": "20260831",
               "firstSeenAt": "2026-09-02T01:47:59.099+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
-              "articleId": "2649012443",
-              "price": 120000,
-              "priceText": "12억",
-              "floor": "고층/13층",
-              "buildingName": "1404동",
-              "direction": "남향",
-              "description": "풀옵션.시스템에어컨.관리 잘되어있는세대.입주협의가능",
-              "realtorName": "파크공인중개사사무소",
-              "confirmDate": "20260910",
-              "firstSeenAt": "2026-09-10T07:30:27.495002+00:00",
-              "daysOnMarket": 0,
-              "isNew": true
-            },
-            {
-              "articleId": "2648600176",
+              "articleId": "2649139299",
               "price": 120000,
               "priceText": "12억",
               "floor": "10층/13층",
               "buildingName": "1407동",
+              "direction": "남향",
+              "description": "시스템에어컨 풀, 중문, 붙박이장, 펜트리공간, 입주 5년차 신축",
+              "realtorName": "미사은호(031-793-9006)공인중개사사무소",
+              "confirmDate": "20260911",
+              "firstSeenAt": "2026-09-11T02:20:21.34851+00:00",
+              "daysOnMarket": 0,
+              "isNew": true
+            },
+            {
+              "articleId": "2649139406",
+              "price": 120000,
+              "priceText": "12억",
+              "floor": "고층/13층",
+              "buildingName": "1404동",
               "direction": "남동향",
-              "description": "친환경 인테리어, 시스템에어컨4대, 실링팬, 붙박이장, 채광 굿",
-              "realtorName": "자이하나(031-794-2011)공인중개사사무소",
-              "confirmDate": "20260908",
-              "firstSeenAt": "2026-09-09T02:15:46.237578+00:00",
-              "daysOnMarket": 1,
-              "isNew": false
+              "description": "시스템에어컨4대, 방마다 붙박이장, 풀옵션, 펜트리 유",
+              "realtorName": "미사은호(031-793-9006)공인중개사사무소",
+              "confirmDate": "20260911",
+              "firstSeenAt": "2026-09-11T02:20:22.107668+00:00",
+              "daysOnMarket": 0,
+              "isNew": true
             },
             {
               "articleId": "2646156258",
@@ -1839,7 +1837,7 @@
               "realtorName": "파크공인중개사사무소",
               "confirmDate": "20260827",
               "firstSeenAt": "2026-09-02T01:48:04.134+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -1853,7 +1851,7 @@
               "realtorName": "미사강변동일하이빌 공인중개사 사무소",
               "confirmDate": "20260824",
               "firstSeenAt": "2026-09-02T01:48:04.483+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -1881,7 +1879,7 @@
               "realtorName": "소현공인중개사사무소",
               "confirmDate": "20260907",
               "firstSeenAt": "2026-09-08T01:46:11.925429+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
             },
             {
@@ -1895,7 +1893,7 @@
               "realtorName": "미사강변동일하이빌공인중개사사무소",
               "confirmDate": "20260828",
               "firstSeenAt": "2026-09-02T01:48:00.135+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -1909,7 +1907,7 @@
               "realtorName": "미사강변동일하이빌 공인중개사 사무소",
               "confirmDate": "20260825",
               "firstSeenAt": "2026-09-02T01:48:04.309+00:00",
-              "daysOnMarket": 8,
+              "daysOnMarket": 9,
               "isNew": false
             },
             {
@@ -1923,7 +1921,7 @@
               "realtorName": "큰문공인중개사사무소",
               "confirmDate": "20260908",
               "firstSeenAt": "2026-09-08T01:46:12.811448+00:00",
-              "daysOnMarket": 2,
+              "daysOnMarket": 3,
               "isNew": false
             }
           ],
@@ -1941,6 +1939,58 @@
             "gap": 60500
           },
           "timeline": [
+            {
+              "date": "2026-09-11",
+              "type": "new",
+              "label": "신규 매물",
+              "detail": "3건 · 11.3억 ~ 12억",
+              "items": [
+                {
+                  "articleId": "2649050688",
+                  "price": 113000,
+                  "where": "1404동 · 저층/13층",
+                  "note": "남동향 · 미사강변동일하이빌공인중개사사무소"
+                },
+                {
+                  "articleId": "2649139299",
+                  "price": 120000,
+                  "where": "1407동 · 10층/13층",
+                  "note": "남향 · 미사은호(031-793-9006)공인중개사사무소"
+                },
+                {
+                  "articleId": "2649139406",
+                  "price": 120000,
+                  "where": "1404동 · 고층/13층",
+                  "note": "남동향 · 미사은호(031-793-9006)공인중개사사무소"
+                }
+              ]
+            },
+            {
+              "date": "2026-09-11",
+              "type": "removed",
+              "label": "매물 내려감",
+              "detail": "3건 · 11.3억 ~ 12억",
+              "items": [
+                {
+                  "articleId": "2649012446",
+                  "price": 113000,
+                  "where": "1404동 · 저층/13층",
+                  "note": "남향 · 파크공인중개사사무소"
+                },
+                {
+                  "articleId": "2648600176",
+                  "price": 120000,
+                  "where": "1407동 · 10층/13층",
+                  "note": "남동향 · 자이하나(031-794-2011)공인중개사사무소"
+                },
+                {
+                  "articleId": "2649012443",
+                  "price": 120000,
+                  "where": "1404동 · 고층/13층",
+                  "note": "남향 · 파크공인중개사사무소"
+                }
+              ]
+            },
             {
               "date": "2026-09-10",
               "type": "new",
@@ -2064,16 +2114,16 @@
                   "note": "남동향 · 큰문공인중개사사무소"
                 },
                 {
-                  "articleId": "2648269554",
-                  "price": 120000,
-                  "where": "1404동 · 저층/13층",
-                  "note": "남향 · 소현공인중개사사무소"
-                },
-                {
                   "articleId": "2648203301",
                   "price": 120000,
                   "where": "1404동 · 고층/13층",
                   "note": "남향 · 랜드윌공인중개사사무소"
+                },
+                {
+                  "articleId": "2648269554",
+                  "price": 120000,
+                  "where": "1404동 · 저층/13층",
+                  "note": "남향 · 소현공인중개사사무소"
                 },
                 {
                   "articleId": "2648402539",
