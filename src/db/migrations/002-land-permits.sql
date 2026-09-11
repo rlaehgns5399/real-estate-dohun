@@ -13,7 +13,7 @@ CREATE TABLE land_permits (
   bobn TEXT NOT NULL,          -- 본번 4자리 (0028)
   bubn TEXT NOT NULL,          -- 부번 4자리 (0000)
   address TEXT NOT NULL,       -- "강동구 상일동 28"
-  jimok TEXT,                  -- 지목. 아파트 부지는 '대'이고 '답'이 섞여 들어온다.
+  jimok TEXT,                  -- 지목. 토지정리 전 단지는 '대'에 '답'이 섞인다 (둘 다 같은 아파트 거래)
   job_gbn_nm TEXT NOT NULL,    -- 허가 / 취하 / 취소 / 기타 — 전부 허가가 아니다
   use_purp TEXT,               -- 이용목적 (주거용 등)
   permit_date DATE NOT NULL,   -- 처리(허가) 년월일

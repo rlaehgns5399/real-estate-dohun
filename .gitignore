@@ -4,3 +4,6 @@ dist/
 .claude/
 .env
 .agents/
+
+# 오타로 만들어지기 쉬운 파일 (cat ... > pbcopy)
+pbcopy
