@@ -8,6 +8,7 @@ export interface ChartTokens {
   border: string;
   grid: string;
   bandAsk: string;
+  bandKb: string;
   muted: string;
   card: string;
   text: string;
@@ -22,6 +23,7 @@ const TOKEN_NAMES: Record<keyof ChartTokens, string> = {
   border: "--color-border",
   grid: "--color-grid",
   bandAsk: "--color-band-ask",
+  bandKb: "--color-band-kb",
   muted: "--color-muted",
   card: "--color-card",
   text: "--color-text",

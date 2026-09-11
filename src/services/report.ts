@@ -54,9 +54,6 @@ export async function runCollection(): Promise<CollectedArea[]> {
   const allTransactions = await collectTransactions();
   const kbPrices = await collectKbPrices(APARTMENT_ITEMS);
 
-  // 최근 62일치만 본다. 그보다 과거는 `pnpm backfill:permits`가 따로 채운다.
-  await updateRecentPermits(APARTMENT_ITEMS);
-
   const results: CollectedArea[] = [];
 
   for (const apt of APARTMENT_ITEMS) {
@@ -75,6 +72,11 @@ export async function runCollection(): Promise<CollectedArea[]> {
       });
     }
   }
+
+  // 토지거래허가는 마지막에 둔다. 넷 중 가장 곁다리이고 비공식 엔드포인트라 가장 잘
+  // 깨진다. 뒤에 두면 여기서 터져도 앞선 세 소스가 DB에 써 둔 것은 남는다 — 발행만
+  // 건너뛰고 다음 실행에서 따라잡는다. 최근 62일치만 보고, 과거는 `pnpm backfill:permits`가 채운다.
+  await updateRecentPermits(APARTMENT_ITEMS);
 
   console.log("=== 수집 완료 ===", new Date().toISOString());
   return results;

@@ -60,7 +60,7 @@ interface Series {
   key: string;
   label: string;
   labels: string[];
-  swatch: "dot" | "line" | "band" | "dash" | "bar" | "rails";
+  swatch: "dot" | "line" | "band" | "dash" | "bar";
   color: string;
   present: (area: AreaPage) => boolean;
 }
@@ -94,7 +94,7 @@ const SERIES: Series[] = [
     key: "kbBand",
     label: "KB 하위~상위",
     labels: ["KB 상위평균", "KB 하위평균"],
-    swatch: "rails",
+    swatch: "band",
     color: "var(--color-kb)",
     present: (a) => a.chart.kbLower.length > 0,
   },
@@ -135,18 +135,6 @@ function Swatch({ series }: { series: Series }) {
           background: "repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px)",
         }}
       />
-    );
-  }
-  // 경계선 한 쌍 — 위아래 얇은 선 사이가 비어 있는 밴드를 뜻한다
-  if (series.swatch === "rails") {
-    return (
-      <i
-        className="inline-flex h-2 w-3.5 shrink-0 flex-col justify-between"
-        style={{ color: series.color }}
-      >
-        <i className="block h-px w-full rounded-sm bg-current" />
-        <i className="block h-px w-full rounded-sm bg-current" />
-      </i>
     );
   }
   if (series.swatch === "bar") {
@@ -243,16 +231,17 @@ export function ChartCard({ area, theme }: Props) {
     const maxPermit = permits.length > 0 ? Math.max(...permits.map((p) => p.y)) : 0;
 
     const datasets: Array<Record<string, unknown>> = [
-      // 밴드가 둘인데 둘 다 채우면 겹친 구간이 어느 쪽도 아닌 색이 된다.
-      // 면은 호가 하나만 쓰고, KB는 위·아래 경계선으로 둘러 표시한다.
-      // 실제로 관측된 값(호가)에 면을, 기관 추정치(KB)에 선을 주는 편이 의미와도 맞다.
+      // 밴드 둘이 겹치는 구간은 어느 쪽도 아닌 색이 된다. 경계선으로 바꿔 보기도 했는데,
+      // 선 세 줄(상위·일반·하위)이 서로 다른 계열처럼 보여 "범위"라는 뜻이 오히려 흐려졌다.
+      // 채운 면이 범위를 훨씬 빨리 읽히게 하므로 둘 다 면으로 두고, 대신 농도를 충분히
+      // 낮춰(11% / 14%) 겹친 구간이 탁해지는 정도를 줄인다.
       {
         type: "line",
         label: "KB 상위평균",
         data: stretch(area.chart.kbUpper, bounds),
-        borderColor: tokens.kb,
-        borderWidth: 1,
-        fill: false,
+        borderColor: "transparent",
+        backgroundColor: tokens.bandKb,
+        fill: "+1",
         pointRadius: 0,
         pointHitRadius: 0,
         cubicInterpolationMode: "monotone",
@@ -262,9 +251,7 @@ export function ChartCard({ area, theme }: Props) {
         type: "line",
         label: "KB 하위평균",
         data: stretch(area.chart.kbLower, bounds),
-        borderColor: tokens.kb,
-        borderWidth: 1,
-        fill: false,
+        borderColor: "transparent",
         pointRadius: 0,
         pointHitRadius: 0,
         cubicInterpolationMode: "monotone",

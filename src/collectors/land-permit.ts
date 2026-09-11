@@ -84,16 +84,27 @@ export async function fetchPermitWindow(
     throw new Error(`[permit] 시작일이 종료일보다 늦습니다: ${ymd(begin)} ~ ${ymd(end)}`);
   }
 
-  const { data } = await axios.post(
-    URL,
-    new URLSearchParams({ sggCd, beginDate: ymd(begin), endDate: ymd(end) }),
-    { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 60000 },
-  );
+  // axios가 던지는 원본 오류는 "Request failed with status code 404"처럼 맥락이 없다.
+  // 한 실행에 네 소스가 섞여 찍히므로, 어디서 무엇을 받다 터졌는지 메시지에 담는다.
+  let data: unknown;
+  try {
+    ({ data } = await axios.post(
+      URL,
+      new URLSearchParams({ sggCd, beginDate: ymd(begin), endDate: ymd(end) }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 60000 },
+    ));
+  } catch (err) {
+    throw new Error(
+      `[permit] 자치구 ${sggCd} ${ymd(begin)}~${ymd(end)} 조회 실패: ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
+  }
 
-  const rows = data?.result;
+  const rows = (data as { result?: unknown } | null)?.result;
   if (!Array.isArray(rows)) {
     throw new Error(
-      `[permit] ${sggCd} ${ymd(begin)}~${ymd(end)}: 예상치 못한 응답 — ` +
+      `[permit] 자치구 ${sggCd} ${ymd(begin)}~${ymd(end)}: 예상치 못한 응답 — ` +
         `${JSON.stringify(data).slice(0, 200)}`,
     );
   }
