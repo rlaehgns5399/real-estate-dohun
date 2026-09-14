@@ -6,6 +6,7 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "telegram": "tsx src/telegram.ts",
+    "naver:login": "tsx src/scripts/naver-login.ts",
     "data": "tsx src/scripts/build-data.ts",
     "dev": "vite --config web/vite.config.ts",
     "build": "vite build --config web/vite.config.ts",

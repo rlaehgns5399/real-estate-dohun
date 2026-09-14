@@ -2,7 +2,8 @@
 // page.evaluate 콜백은 브라우저 컨텍스트에서 실행되므로 DOM 타입이 필요하다.
 // 나머지 Node 코드가 실수로 브라우저 API를 쓰는 걸 막기 위해 이 파일에만 열어둔다.
 
-import { type Browser, chromium } from "playwright";
+import type { BrowserContext } from "playwright";
+import { launchNaverBrowser } from "@/collectors/naver-browser";
 import type { ApartmentItem, Listing } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
 
@@ -98,19 +99,11 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
    */
   let reachedLastPage = false;
 
-  let browser: Browser | null = null;
+  let context: BrowserContext | null = null;
   try {
-    browser = await chromium.launch({
-      headless: false,
-      args: [
-        "--disable-blink-features=AutomationControlled",
-        ...(process.env.CI ? [] : ["--window-position=-9999,-9999"]),
-      ],
-    });
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 720 },
-    });
-    const page = await context.newPage();
+    context = await launchNaverBrowser();
+    // 영속 프로필은 빈 탭 하나를 띄운 채로 열린다. 새 탭을 또 만들지 않고 그걸 쓴다.
+    const page = context.pages()[0] ?? (await context.newPage());
 
     // webdriver 플래그 제거 (자동화 감지 우회)
     await page.addInitScript(() => {
@@ -176,7 +169,7 @@ export async function fetchListings(apt: ApartmentItem): Promise<Listing[]> {
     // 여기서 삼키면 빈 배열이 "매물 전부 내려감"으로 둔갑해 DB의 활성 매물이 통째로 꺼진다.
     throw new Error(`[naver] 단지 ${apt.naverComplexId} 수집 실패`, { cause: err });
   } finally {
-    if (browser) await browser.close();
+    if (context) await context.close();
   }
 
   if (!gotArticleResponse) {

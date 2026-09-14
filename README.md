@@ -39,6 +39,7 @@ JSON은 빌드 시점에 번들로 들어가므로 브라우저가 Supabase를 �
 |---|---|
 | `pnpm start` | 수집 → `data/latest.json` → 커밋 → 푸시 (평소엔 이것만) |
 | `pnpm telegram` | 수집 → 텔레그램 발송 |
+| `pnpm naver:login` | 수집용 Chrome 프로필을 띄워 네이버에 로그인 (선택, 한 번) |
 | `pnpm data` | 수집 없이 Supabase → `data/latest.json` 갱신 |
 | `pnpm backfill:permits [YYYY-MM-DD]` | 토지거래허가 과거 이력 채우기 (기본 2025-10-20) |
 | `pnpm backfill:kb` | KB 과거 시세(월별) 채우기 — 관심 면적을 새로 추가했을 때 |
@@ -137,6 +138,17 @@ CSS에 남긴 것은 유틸리티로 표현이 어렵거나 오히려 나빠지�
 pnpm install
 pnpm exec playwright install --with-deps chromium
 ```
+
+네이버 수집은 번들 Chromium이 아니라 **설치된 Google Chrome**을 수집 전용 프로필
+(`~/.real-estate-dohun/chrome-profile`, `NAVER_BROWSER_PROFILE`로 변경 가능)로 연다.
+쿠키가 실행 사이에 남아 네이버가 매번 처음 보는 브라우저로 여기지 않는다. CI처럼 Chrome이
+없는 곳에서는 번들 Chromium으로 돌아가므로 위 설치 명령은 그대로 둔다.
+
+평소 쓰는 Chrome 프로필을 그대로 쓸 수는 없다. Chrome 136부터 기본 프로필에는 자동화 연결이
+막혔고, 평소 Chrome이 켜져 있으면 같은 프로필을 잡을 수도 없다. 구글 계정 동기화도 안 된다 —
+Playwright가 `--disable-sync`를 붙이고 구글이 자동화 브라우저의 로그인을 막는다. 네이버 로그인이
+필요하면 `pnpm naver:login`으로 이 프로필에 한 번 로그인해 둔다. 수집 중에는 그 창을 닫아야 한다
+(같은 프로필을 두 Chrome이 동시에 못 연다).
 
 ### 2. 환경변수
 
