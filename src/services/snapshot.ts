@@ -1,5 +1,5 @@
 import { fetchListings } from "@/collectors/naver";
-import { supabase } from "@/db/client";
+import { fetchAllRows, supabase } from "@/db/client";
 import type { ApartmentItem, Listing, ListingDiff } from "@/types";
 import { AREA_TOLERANCE } from "@/utils/constants";
 import { parsePriceText } from "@/utils/format";
@@ -45,12 +45,16 @@ function dbRowToListing(row: DbListingRow, complexNo: string): Listing {
  * "신규"로 잡히고 first_seen_at이 리셋된다. 이미 아는 article_id인지가 기준이어야 한다.
  */
 async function getKnownListings(naverComplexId: string): Promise<DbListingRow[]> {
-  const { data } = await supabase
-    .from("listings")
-    .select("*")
-    .eq("naver_complex_id", naverComplexId);
-
-  return (data ?? []) as DbListingRow[];
+  // 1000행에서 잘리면 뒤쪽(최근) 활성 매물이 activeRows에서 빠져 내려가도 꺼지지 않고,
+  // 이미 아는 매물이 매번 "신규"로 잡힌다. 끝까지 읽는다.
+  return fetchAllRows<DbListingRow>((from, to) =>
+    supabase
+      .from("listings")
+      .select("*")
+      .eq("naver_complex_id", naverComplexId)
+      .order("id")
+      .range(from, to),
+  );
 }
 
 /**

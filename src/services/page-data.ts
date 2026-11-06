@@ -1,5 +1,5 @@
 import { APARTMENT_ITEMS } from "@/constants/items";
-import { supabase } from "@/db/client";
+import { fetchAllRows, supabase } from "@/db/client";
 import type { ApartmentItem, AreaTarget } from "@/types";
 import type {
   ApartmentPage,
@@ -596,25 +596,39 @@ async function fetchPermitCounts(apt: ApartmentItem): Promise<Array<{ t: number;
 }
 
 async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<ApartmentPage> {
-  const [listingRes, txRes, kbRes] = await Promise.all([
-    supabase.from("listings").select("*").eq("naver_complex_id", apt.naverComplexId),
-    supabase
-      .from("transactions")
-      .select("*")
-      .eq("apartment_name", apt.name)
-      .order("deal_date", { ascending: false }),
-    supabase
-      .from("kb_prices")
-      .select("*")
-      .eq("apartment_name", apt.name)
-      .order("fetched_at", { ascending: false }),
+  // 셋 다 1000행 제한을 넘을 수 있어 끝까지 읽는다. listings는 이미 넘었고(잘린 채로
+  // 그리면 활성 매물이 대부분 빠진다), kb_prices도 하루 여러 번 쌓여 언젠가 넘는다.
+  // 조회 실패는 던진다 — 빈 목록으로 발행하면 "매물 0건"이 사실처럼 푸시된다.
+  const [allListingRows, allTxRows, allKbRows] = await Promise.all([
+    fetchAllRows<ListingRow>((from, to) =>
+      supabase
+        .from("listings")
+        .select("*")
+        .eq("naver_complex_id", apt.naverComplexId)
+        .order("id")
+        .range(from, to),
+    ),
+    fetchAllRows<TransactionRow>((from, to) =>
+      supabase
+        .from("transactions")
+        .select("*")
+        .eq("apartment_name", apt.name)
+        .order("deal_date", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
+    fetchAllRows<KbRow>((from, to) =>
+      supabase
+        .from("kb_prices")
+        .select("*")
+        .eq("apartment_name", apt.name)
+        .order("fetched_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
   ]);
 
   const permits = await fetchPermitCounts(apt);
-
-  const allListingRows = (listingRes.data ?? []) as ListingRow[];
-  const allTxRows = (txRes.data ?? []) as TransactionRow[];
-  const allKbRows = (kbRes.data ?? []) as KbRow[];
 
   const areas = await Promise.all(
     apt.areas.map(async (target, index) => {
@@ -630,7 +644,7 @@ async function buildApartmentPage(apt: ApartmentItem, now: number): Promise<Apar
   return {
     name: apt.name,
     address: apt.address,
-    naverUrl: `https://new.land.naver.com/complexes/${apt.naverComplexId}`,
+    naverUrl: `https://fin.land.naver.com/complexes/${apt.naverComplexId}?tab=article`,
     areas,
   };
 }

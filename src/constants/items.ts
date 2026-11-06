@@ -6,7 +6,7 @@ import type { ApartmentItem } from "@/types";
  * - name:            국토교통부 실거래가 API에 나오는 아파트명 (정확히 일치)
  *                    확인: https://rt.molit.go.kr
  * - naverComplexId:  네이버 부동산 URL의 complexNo
- *                    확인: https://new.land.naver.com/complexes/{complexNo}
+ *                    확인: https://fin.land.naver.com/complexes/{complexNo} (구 new.land와 같은 번호)
  * - kbComplexId:     KB부동산 단지코드 (없으면 null)
  *                    확인: https://kbland.kr
  * - address:         주소 (알림 표시용)

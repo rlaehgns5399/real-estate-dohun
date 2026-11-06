@@ -13,7 +13,7 @@ import { launchNaverBrowser, NAVER_PROFILE_DIR } from "@/collectors/naver-browse
 async function main() {
   const context = await launchNaverBrowser({ visible: true });
   const page = context.pages()[0] ?? (await context.newPage());
-  await page.goto("https://nid.naver.com/nidlogin.login?url=https%3A%2F%2Fnew.land.naver.com");
+  await page.goto("https://nid.naver.com/nidlogin.login?url=https%3A%2F%2Ffin.land.naver.com");
 
   console.log(`[naver:login] 프로필: ${NAVER_PROFILE_DIR}`);
   console.log("[naver:login] 열린 창에서 네이버에 로그인한 뒤 창을 닫으면 저장됩니다.");
